@@ -7,11 +7,11 @@ echo $GETHOPTS
 case $1 in
   start)
     echo "Starting testnet node"
-    $GETH --dev --genesis ./testnet/genesis.json --datadir ./testnet --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 js unlock.js 2>> /tmp/digix_testnet.out
+    $GETH --genesis ./testnet/genesis.json --datadir ./testnet --mine --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 js unlock.js 2>> /tmp/digix_testnet.out
     ;;
   attach)
     echo "Attaching to console"
-    $GETH --dev --genesis ./testnet/genesis.json --datadir ./testnet --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 attach
+    $GETH --genesis ./testnet/genesis.json --datadir ./testnet --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 attach
     ;;
   clear)
     echo "Clearing testnet files"
