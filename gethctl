@@ -1,12 +1,17 @@
 #!/usr/bin/env bash
 
 GETH=$HOME/projects/ethereum/go-ethereum/build/bin/geth
-GETHOPTS="--dev --genesis ${PWD}/testnet/genesis.json --datadir ./testnet --mine --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3"
+GETHOPTS=''
+echo $GETHOPTS
 
 case $1 in
   start)
     echo "Starting testnet node"
-    $GETH $GETHOPTS console 2>> /tmp/digix_testnet.out
+    $GETH --dev --genesis ./testnet/genesis.json --datadir ./testnet --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 js unlock.js 2>> /tmp/digix_testnet.out
+    ;;
+  attach)
+    echo "Attaching to console"
+    $GETH --dev --genesis ./testnet/genesis.json --datadir ./testnet --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 attach
     ;;
   clear)
     echo "Clearing testnet files"
@@ -17,7 +22,7 @@ case $1 in
     done
     ;;
   *)
-    echo "Usage $0 [start | clear]"
+    echo "Usage $0 [start | clear | attach]"
     ;;
 esac
 
