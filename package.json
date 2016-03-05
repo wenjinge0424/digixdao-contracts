@@ -1,0 +1,24 @@
+{
+  "name": "dao-contracts",
+  "version": "0.1.0",
+  "description": "DigixDAO Contracts",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "tests/index.js"
+  },
+  "keywords": [
+    "solidity",
+    "dao",
+    "contracts",
+    "digix"
+  ],
+  "author": "DigixGlobal Pte Ltd <ace@dgx.io>",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "grunt": "^0.4.5",
+    "web3": "^0.15.3"
+  }
+}
