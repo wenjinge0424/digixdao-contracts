@@ -2,5 +2,22 @@
 
 GETH=$HOME/projects/ethereum/go-ethereum/build/bin/geth
 GETHOPTS="--dev --genesis ${PWD}/testnet/genesis.json --datadir ./testnet --mine --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3"
-$GETH $GETHOPTS console 2>> /tmp/digix_testnet.out
+
+case $1 in
+  start)
+    echo "Starting testnet node"
+    $GETH $GETHOPTS console 2>> /tmp/digix_testnet.out
+    ;;
+  clear)
+    echo "Clearing testnet files"
+    data_files=(testnet/chaindata testnet/dapp testnet/history testnet/geth.ipc testnet/nodekey testnet/nodes)
+    for data_file in ${data_files[@]}
+    do
+      rm -rf $data_file
+    done
+    ;;
+  *)
+    echo "Usage $0 [start | clear]"
+    ;;
+esac
 
