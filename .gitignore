@@ -1,2 +1,8 @@
 node_modules
 build
+testnet/chaindata
+testnet/dapp
+testnet/history
+testnet/geth.ipc
+testnet/nodekey
+testnet/nodes

@@ -1,4 +1,3 @@
-import "./TokenInterface.sol";
 contract Token is TokenInterface {
 
   modifier noEther() {if (msg.value > 0) throw; _}
