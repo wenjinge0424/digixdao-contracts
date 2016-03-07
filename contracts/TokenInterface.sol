@@ -1,8 +1,12 @@
 /// @title DigixDAO Token Contract.
 
 contract TokenInterface {
+
     mapping (address => uint256) balances;
     mapping (address => mapping (address => uint256)) allowed;
+    mapping (address => bool) seller;
+
+    address public dao;
 
     /// @return total amount of tokens
     uint256 public totalSupply;
@@ -34,6 +38,13 @@ contract TokenInterface {
     /// @param _spender The address of the account able to transfer the tokens
     /// @return Amount of remaining tokens of _owner that _spender is allowed to spend
     function allowance(address _owner, address _spender) constant returns (uint256 remaining);
+
+
+    /// @notice mint `_amount` of tokens to `_owner`
+    /// @param _owner The address of the account receiving the tokens
+    /// @param _amount The amount of tokens to mint
+    /// @return Whether or not minting was successful
+    function mint(address _owner, uint256 _amount) returns (bool success);
 
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);

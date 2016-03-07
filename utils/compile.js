@@ -10,7 +10,7 @@ var buildbase = config.buildBase();
 
 var cfile = "";
 
-var contracts = ["TokenInterface.sol", "Token.sol"];
+var contracts = ["PriceTicker.sol", "TokenInterface.sol", "TokenSalesInterface.sol", "Token.sol", "TokenSales.sol"];
 
 contracts.forEach(function(contract) {
   var contractfile = contractbase + contract 

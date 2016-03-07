@@ -1,2 +1,0 @@
-contract DAO is DAOInterface {
-}

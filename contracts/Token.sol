@@ -2,6 +2,15 @@ contract Token is TokenInterface {
 
   modifier noEther() {if (msg.value > 0) throw; _}
 
+  function mint(address _owner, uint256 _amount) returns (bool success) {
+    success = true;
+    return success;
+  }
+
+  function Token(address _initseller) {
+    seller[_initseller] = true; 
+  }
+
   function transfer(address _to, uint256 _value) noEther returns (bool success) {
     if (balances[msg.sender] >= _value && _value > 0) {
       balances[msg.sender] -= _value;

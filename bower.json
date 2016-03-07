@@ -23,5 +23,6 @@
     "tests"
   ],
   "dependencies": {
+    "ether-pudding": "https://github.com/ConsenSys/ether-pudding.git"
   }
 }

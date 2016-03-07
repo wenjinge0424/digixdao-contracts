@@ -1,0 +1,14 @@
+{
+  "name": "ether-pudding",
+  "homepage": "https://github.com/ConsenSys/ether-pudding",
+  "version": "1.0.2",
+  "_release": "1.0.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v1.0.2",
+    "commit": "4b2f26d39ef7c4454aa4dc74e3cd6e20d054c2d7"
+  },
+  "_source": "https://github.com/ConsenSys/ether-pudding.git",
+  "_target": "*",
+  "_originalSource": "https://github.com/ConsenSys/ether-pudding.git"
+}

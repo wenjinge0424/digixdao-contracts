@@ -1,0 +1,31 @@
+{
+  "build": {
+    "ether-pudding.js": {
+      "files": [
+        "pudding.es6"
+      ],
+      "post-process": [
+        "version"
+      ]
+    },
+    "ether-pudding.min.js": {
+      "files": [
+        "../build/ether-pudding.js"
+      ],
+      "post-process": [
+        "uglify"
+      ]
+    }
+  },
+  "processors": {
+    "version": "./app/version.js"
+  },
+  "deploy": [
+    "Example",
+    "TestWithConstructor"
+  ],
+  "rpc": {
+    "host": "localhost",
+    "port": 8545
+  }
+}
