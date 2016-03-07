@@ -1,0 +1,27 @@
+{
+  "name": "dao-contracts",
+  "description": "DigixDAO Contracts",
+  "main": "index.js",
+  "authors": [
+    "DigixGlobal Pte Ltd <ace@dgx.io>"
+  ],
+  "license": "BSD-2-Clause",
+  "keywords": [
+    "solidity",
+    "dao",
+    "contracts",
+    "digix"
+  ],
+  "homepage": "https://github.com/DigixGlobal/digixdao-contracts",
+  "moduleType": [],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+  }
+}
