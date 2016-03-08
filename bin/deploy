@@ -1,0 +1,41 @@
+#!/usr/bin/env ruby
+
+require 'ethereum'
+require 'active_support'
+require 'active_support/core_ext'
+require 'pry'
+
+base_dir = ENV['PWD']
+project = Ethereum::ProjectInitializer.new("#{base_dir}/contracts/*.sol", true)
+ethereum_client = Ethereum::HttpClient.new("localhost", "8545")
+
+
+project.contracts.each do |contract|
+  contract.build(ethereum_client)
+end
+
+coinbase = ethereum_client.coinbase["result"]
+
+tokenSales = TokenSales.new
+tokenSales.as(coinbase)
+start_date = Time.now.to_i
+end_date = Time.now.to_i + 30.days
+crowdsale_amount = 2_000_000 
+tokenSales.deploy_and_wait(120, start_date, end_date, crowdsale_amount)
+
+binding.pry
+
+#priceTicker = PriceTicker.new
+#priceTicker.as(coinbase)
+
+#puts "Deploying PriceTicker"
+#priceTicker.deploy_and_wait
+
+#token = Token.new
+#token.as(coinbase)
+#puts "Deploying Token"
+#token.deploy_and_wait(120, coinbase)
+
+
+
+

@@ -1,9 +1,21 @@
+import "./TokenInterface.sol";
+
 contract Token is TokenInterface {
 
-  modifier noEther() {if (msg.value > 0) throw; _}
+  modifier noEther() {
+    if (msg.value > 0) throw;
+    _
+  }
 
-  function mint(address _owner, uint256 _amount) returns (bool success) {
-    success = true;
+  modifier ifSales() {
+    if (!seller[msg.sender]) 
+      throw; 
+    _ 
+  }
+
+  function mint(address _owner, uint256 _amount) ifSales returns (bool success) {
+    totalSupply += _amount;
+    balances[_owner] += _amount;
     return success;
   }
 
