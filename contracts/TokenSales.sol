@@ -117,8 +117,9 @@ contract TokenSales is TokenSalesInterface {
     }
   }
 
-  function userInfo(address _user) public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, bool claimed) {
+  function userInfo(address _user) public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, uint badges, bool claimed) {
     share = calcShare(buyers[_user].centsTotal, saleInfo.totalCents);
+    badges = buyers[_user].centsTotal / 1500000;
     return (buyers[_user].centsTotal, buyers[_user].weiTotal, share, buyers[_user].claimed);
   }
 

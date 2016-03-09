@@ -33,7 +33,7 @@ contract TokenSalesInterface {
 
   function purchase(address _user) returns (bool success);
 
-  function userInfo(address _user) public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, bool claimed); 
+  function userInfo(address _user) public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, uint badges, bool claimed); 
 
   function totalWei() public constant returns (uint);
 
