@@ -39,7 +39,6 @@ contract TokenInterface {
     /// @return Amount of remaining tokens of _owner that _spender is allowed to spend
     function allowance(address _owner, address _spender) constant returns (uint256 remaining);
 
-
     /// @notice mint `_amount` of tokens to `_owner`
     /// @param _owner The address of the account receiving the tokens
     /// @param _amount The amount of tokens to mint

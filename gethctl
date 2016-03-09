@@ -7,7 +7,7 @@ echo $GETHOPTS
 case $1 in
   start)
     echo "Starting testnet node"
-    $GETH --genesis ./testnet/genesis.json --datadir ./testnet --mine --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 js unlock.js 2>> /tmp/digix_testnet.out
+    $GETH --genesis ./testnet/genesis.json --datadir ./testnet --minerthreads 1 --mine --vmdebug --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 js unlock.js 2>> /tmp/digix_testnet.out
     ;;
   attach)
     echo "Attaching to console"
@@ -15,6 +15,7 @@ case $1 in
     ;;
   clear)
     echo "Clearing testnet files"
+    cat /dev/null > /tmp/digix_testnet.out
     data_files=(testnet/chaindata testnet/dapp testnet/history testnet/geth.ipc testnet/nodekey testnet/nodes)
     for data_file in ${data_files[@]}
     do
