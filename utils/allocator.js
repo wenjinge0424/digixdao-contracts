@@ -19,7 +19,7 @@ var genesis = {
 
 accounts.forEach(function(acc) {
   account = acc.replace("0x", "");
-  genesis['alloc'][account] = {balance: "31337000000000000000000000000"}
+  genesis['alloc'][account] = {balance: "170141183460469231731687303715884105728"}
 });
 
 var genesisstring = JSON.stringify(genesis, null, 4);

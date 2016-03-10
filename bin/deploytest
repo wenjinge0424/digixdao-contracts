@@ -24,8 +24,8 @@ $token_sales.as(coinbase)
 
 start_date = (Time.now + 30.seconds).to_i
 period_two = (start_date + 60.seconds).to_i
-period_three = (start_date + 80.seconds).to_i
-end_date = (start_date + 100.seconds).to_i
+period_three = (start_date + 300.seconds).to_i
+end_date = (start_date + 600.seconds).to_i
 
 puts "Deploying Contracts".colorize(:light_blue)
 # function TokenSales(uint256 _start, uint256 _end, uint256 _ptwo, uint256 _pthree) {
@@ -51,7 +51,7 @@ def crowdsale_payment
 end
 
 $payments = []
-130.times do 
+1000.times do 
   $payments << crowdsale_payment
 end
 
@@ -109,10 +109,10 @@ end
 
 def write_share_csv
   csv_file = File.new("/tmp/daoshares_#{Time.now.to_i}.csv", 'w')
-  csv_file.puts "account,usd,ether,share"
+  csv_file.puts "account,usd,ether,share,badges"
   $accounts.each do |account|
     x = $token_sales.c_user_info(account)
-    csv_file.puts "#{account},#{x[0] / 100.0},#{$formatter.from_wei(x[1], 'ether')},#{x[2] / 1000000000.0}"
+    csv_file.puts "#{account},#{x[0] / 100.0},#{$formatter.from_wei(x[1], 'ether')},#{x[2] / 1000000000.0},#{x[3]}"
   end
   csv_file.close
 end
