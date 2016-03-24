@@ -172,35 +172,51 @@ contract TokenSalesInterface {
   /// @return Part per billion value
   function ppb(uint256 _a, uint256 _c) public constant returns (uint256 b);
 
+
   function calcShare(uint256 _contrib, uint256 _total) public constant returns (uint256 share);
+
 
   function weiToCents(uint256 _wei) public constant returns (uint256 centsvalue);
 
+
   function purchase(address _user) returns (bool success);
+
 
   function userInfo(address _user) public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, uint badges, bool claimed); 
 
+
   function myInfo() public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, uint badges, bool claimed); 
+
 
   function totalWei() public constant returns (uint);
 
+
   function totalCents() public constant returns (uint);
+
 
   function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents, uint256 amount, uint256 goal);
 
+
   function claim() returns (bool success);
+
 
   function goalReached() public constant returns (bool reached);
 
+
   function getPeriod() public constant returns (uint saleperiod);
+
 
   function startDate() public constant returns (uint date);
   
+
   function periodTwo() public constant returns (uint date);
+
 
   function periodThree() public constant returns (uint date);
 
+
   function endDate() public constant returns (uint date);
+
 
   event Purchase(uint256 indexed _exchange, uint256 indexed _rate, uint256 indexed _cents);
   event Claim(address indexed _user, uint256 indexed _amount);
