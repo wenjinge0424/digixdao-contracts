@@ -81,16 +81,27 @@ contract TokenInterface {
 
   /// @return total amount of tokens
   uint256 public totalSupply;
+  uint256 public totalBadges;
 
   /// @param _owner The address from which the balance will be retrieved
   /// @return The balance
   function balanceOf(address _owner) constant returns (uint256 balance);
+
+  /// @param _owner The address from which the badge count will be retrieved
+  /// @return The badges count
+  function badgesOf(address _owner) constant returns (uint256 badge);
 
   /// @notice send `_value` tokens to `_to` from `msg.sender`
   /// @param _to The address of the recipient
   /// @param _value The amount of tokens to be transfered
   /// @return Whether the transfer was successful or not
   function transfer(address _to, uint256 _value) returns (bool success);
+
+  /// @notice send `_value` badges to `_to` from `msg.sender`
+  /// @param _to The address of the recipient
+  /// @param _value The amount of tokens to be transfered
+  /// @return Whether the transfer was successful or not
+  function sendBadge(address _to, uint256 _value) returns (bool success);
 
   /// @notice send `_value` tokens to `_to` from `_from` on the condition it is approved by `_from`
   /// @param _from The address of the sender
@@ -116,7 +127,14 @@ contract TokenInterface {
   /// @return Whether or not minting was successful
   function mint(address _owner, uint256 _amount) returns (bool success);
 
+  /// @notice mintBadge Mint `_amount` badges to `_owner`
+  /// @param _owner The address of the account receiving the tokens
+  /// @param _amount The amount of tokens to mint
+  /// @return Whether or not minting was successful
+  function mintBadge(address _owner, uint256 _amount) returns (bool success);
+
   event Transfer(address indexed _from, address indexed _to, uint256 _value);
+  event SendBadge(address indexed _from, address indexed _to, uint256 _amount);
   event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 }
 
@@ -124,9 +142,9 @@ contract TokenSalesInterface {
 
   struct Info {
     uint256 startDate;
-    uint256 endDate;
     uint256 periodTwo;
     uint256 periodThree;
+    uint256 endDate;
     uint256 totalWei;
     uint256 totalCents;
     uint256 amount;
@@ -145,12 +163,14 @@ contract TokenSalesInterface {
   address owner;
 
   uint256 public ethToCents;
-  uint256 public periodTwo;
-  uint256 public periodThree;
 
   mapping (address => Buyer) buyers;
 
-  function permille(uint256 _a, uint256 _b) public constant returns (uint256 c);
+  /// @notice Calculates the parts per billion 1⁄1,000,000,000 of `_a` to `_b`
+  /// @param _a The antecedent
+  /// @param _c The consequent
+  /// @return Part per billion value
+  function ppb(uint256 _a, uint256 _c) public constant returns (uint256 b);
 
   function calcShare(uint256 _contrib, uint256 _total) public constant returns (uint256 share);
 
@@ -166,7 +186,7 @@ contract TokenSalesInterface {
 
   function totalCents() public constant returns (uint);
 
-  function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents);
+  function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents, uint256 amount, uint256 goal);
 
   function claim() returns (bool success);
 
@@ -174,8 +194,21 @@ contract TokenSalesInterface {
 
   function getPeriod() public constant returns (uint saleperiod);
 
+  function startDate() public constant returns (uint date);
+  
+  function periodTwo() public constant returns (uint date);
+
+  function periodThree() public constant returns (uint date);
+
+  function endDate() public constant returns (uint date);
+
   event Purchase(uint256 indexed _exchange, uint256 indexed _rate, uint256 indexed _cents);
   event Claim(address indexed _user, uint256 indexed _amount);
 
 }
+
+contract DAOInterface {
+
+}
+
 

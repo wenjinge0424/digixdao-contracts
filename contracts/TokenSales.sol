@@ -11,7 +11,7 @@ contract TokenSales is TokenSalesInterface {
   }
 
   uint256 public WEI_PER_ETH = 1000000000000000000;
-  uint256 public MILLE = 1000000000;
+  uint256 public BILLION = 1000000000;
 
   function TokenSales(address _config) {
     owner = msg.sender;
@@ -20,10 +20,12 @@ contract TokenSales is TokenSalesInterface {
     saleInfo.periodTwo = ConfigInterface(_config).getConfigUint("sale1:period2");
     saleInfo.periodThree = ConfigInterface(_config).getConfigUint("sale1:period3");
     saleInfo.endDate = ConfigInterface(_config).getConfigUint("sale1:end");
-    saleInfo.amount = 1700000 * MILLE;
+    // 1700000 * 1000000000 or 1700000.000000000 total tokens
+    saleInfo.amount = ConfigInterface(_config).getConfigUint("sale1:amount") * BILLION;
+    // 50000000 USD cents or $500,000.00
+    saleInfo.goal = ConfigInterface(_config).getConfigUint("sale1:goal");
     saleInfo.totalWei = 0;
     saleInfo.totalCents = 0;
-    saleInfo.goal = 50000000;
   }
 
   function () {
@@ -55,14 +57,14 @@ contract TokenSales is TokenSalesInterface {
     return success;
   }
 
-  function permille(uint256 _a, uint256 _b) public constant returns (uint256 mille) {
-    mille = (MILLE * _a + _b / 2) / _b;
-    return mille;
+  function ppb(uint256 _a, uint256 _c) public constant returns (uint256 b) {
+    b = (BILLION * _a + _c / 2) / _c;
+    return b;
   }
 
   function calcShare(uint256 _contrib, uint256 _total) public constant returns (uint256 share) {
-    uint256 _mille = permille(_contrib, _total);
-    share = ((_mille * saleInfo.amount) / MILLE);
+    uint256 _ppb = ppb(_contrib, _total);
+    share = ((_ppb * saleInfo.amount) / BILLION);
     return share;
   }
 
@@ -77,13 +79,15 @@ contract TokenSales is TokenSalesInterface {
     return success;
   }
 
-  function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents) {
+  function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents, uint256 amount, uint256 goal) {
     startsale = saleInfo.startDate;
     two = saleInfo.periodTwo;
     three = saleInfo.periodThree;
     endsale = saleInfo.endDate;
     totalwei = saleInfo.totalWei;
     totalcents = saleInfo.totalCents;
+    amount = saleInfo.amount;
+    goal = saleInfo.goal;
   }
 
   function goalReached() public constant returns (bool reached) {
@@ -106,7 +110,9 @@ contract TokenSales is TokenSalesInterface {
       buyers[msg.sender].claimed = true;
       address _tokenc = ConfigInterface(config).getConfigAddress("ledger");
       uint256 _tokens = calcShare(buyers[msg.sender].centsTotal, saleInfo.totalCents); 
+      uint256 _badges = buyers[msg.sender].centsTotal / 1500000;
       TokenInterface(_tokenc).mint(msg.sender, _tokens);
+      TokenInterface(_tokenc).mintBadge(msg.sender, _badges);
       return success;
     }
   }
@@ -147,6 +153,22 @@ contract TokenSales is TokenSalesInterface {
 
   function totalCents() public constant returns (uint) {
     return saleInfo.totalCents;
+  }
+
+  function startDate() public constant returns (uint date) {
+    return saleInfo.startDate;
+  }
+  
+  function periodTwo() public constant returns (uint date) {
+    return saleInfo.periodTwo;
+  }
+
+  function periodThree() public constant returns (uint date) {
+    return saleInfo.periodThree;
+  }
+
+  function endDate() public constant returns (uint date) {
+    return saleInfo.endDate;
   }
   
 }

@@ -1,5 +1,4 @@
-import "./DAOInterface.sol";
-import "./TokenInterface.sol";
+import "./Interfaces.sol";
 
 contract DAO is DAOInterface {
 

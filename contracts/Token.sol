@@ -1,5 +1,4 @@
-import "./TokenInterface.sol";
-import "./DAOInterface.sol";
+import "./Interfaces.sol";
 
 contract Token is TokenInterface {
 
@@ -8,31 +7,39 @@ contract Token is TokenInterface {
     _
   }
 
-  modifier ifDao() {
-    if (msg.sender != dao) throw;
-    _
-  }
-
   modifier ifSales() {
-    if (!seller[msg.sender]) 
-      throw; 
+    if (!seller[msg.sender]) throw; 
     _ 
-  }
-
-  function mint(address _owner, uint256 _amount) ifSales returns (bool success) {
-    totalSupply += _amount;
-    balances[_owner] += _amount;
-    return success;
   }
 
   function Token(address _initseller) {
     seller[_initseller] = true; 
   }
 
+  function balanceOf(address _owner) constant returns (uint256 balance) {
+    return users[_owner].balance;
+  }
+
+  function badgesOf(address _owner) constant returns (uint256 badge) {
+    return users[_owner].badges;
+  }
+
   function transfer(address _to, uint256 _value) returns (bool success) {
-    if (balances[msg.sender] >= _value && _value > 0) {
-      balances[msg.sender] -= _value;
-      balances[_to] += _value;
+    if (users[msg.sender].balance >= _value && _value > 0) {
+      users[msg.sender].balance -= _value;
+      users[_to].balance += _value;
+      Transfer(msg.sender, _to, _value);
+      success = true;
+    } else {
+      success = false;
+    }
+    return success;
+  }
+
+  function sendBadge(address _to, uint256 _value) returns (bool success) {
+    if (users[msg.sender].badges >= _value && _value > 0) {
+      users[msg.sender].badges -= _value;
+      users[_to].badges += _value;
       Transfer(msg.sender, _to, _value);
       success = true;
     } else {
@@ -42,9 +49,9 @@ contract Token is TokenInterface {
   }
 
   function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {
-    if (balances[_from] >= _value && allowed[_from][msg.sender] >= _value && _value > 0) {
-      balances[_to] += _value;
-      balances[_from] -= _value;
+    if (users[_from].balance >= _value && allowed[_from][msg.sender] >= _value && _value > 0) {
+      users[_to].balance += _value;
+      users[_from].balance -= _value;
       allowed[_from][msg.sender] -= _value;
       Transfer(_from, _to, _value);
       success = true;
@@ -60,12 +67,19 @@ contract Token is TokenInterface {
     return true;
   }
 
-  function balanceOf(address _owner) constant returns (uint256 balance) {
-    return balances[_owner];
-  }
-
-
   function allowance(address _owner, address _spender) constant returns (uint256 remaining) {
     return allowed[_owner][_spender];
+  }
+
+  function mint(address _owner, uint256 _amount) ifSales returns (bool success) {
+    totalSupply += _amount;
+    users[_owner].balance += _amount;
+    return success;
+  }
+
+  function mintBadge(address _owner, uint256 _amount) ifSales returns (bool success) {
+    totalBadges += _amount;
+    users[_owner].badges += _amount;
+    return success;
   }
 }
