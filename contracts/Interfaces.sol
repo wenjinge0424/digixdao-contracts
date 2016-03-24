@@ -173,58 +173,95 @@ contract TokenSalesInterface {
   function ppb(uint256 _a, uint256 _c) public constant returns (uint256 b);
 
 
+  /// @notice Calculates the share from `_total` based on `_contrib` 
+  /// @param _contrib The contributed amount in USD
+  /// @param _total The total amount raised in USD
+  /// @return Total number of shares
   function calcShare(uint256 _contrib, uint256 _total) public constant returns (uint256 share);
 
-
+  /// @notice Calculates the current USD cents value of `_wei` 
+  /// @param _wei the amount of wei
+  /// @return The USD cents value
   function weiToCents(uint256 _wei) public constant returns (uint256 centsvalue);
 
-
+  /// @notice Send msg.value purchase for _user.  
+  /// @param _user The account to be credited
+  /// @return Success if purchase was accepted
   function purchase(address _user) returns (bool success);
 
-
+  /// @notice Get crowdsale information for `_user`
+  /// @param _user The account to be queried
+  /// @return `centstotal` the total amount of USD cents contributed
+  /// @return `weitotal` the total amount in wei contributed
+  /// @return `share` the current token shares earned
+  /// @return `badges` the number of proposer badges earned
+  /// @return `claimed` is true if the tokens and badges have been claimed
   function userInfo(address _user) public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, uint badges, bool claimed); 
 
-
+  /// @notice Get the crowdsale information from msg.sender (see userInfo)
   function myInfo() public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, uint badges, bool claimed); 
 
-
+  /// @notice get the total amount of wei raised for the crowdsale
+  /// @return The amount of wei raised
   function totalWei() public constant returns (uint);
 
-
+  /// @notice get the total USD value in cents raised for the crowdsale
+  /// @return the amount USD cents
   function totalCents() public constant returns (uint);
 
-
+  /// @notice get the current crowdsale information
+  /// @return `startsale` The unix timestamp for the start of the crowdsale and the first period modifier
+  /// @return `two` The unix timestamp for the start of the second period modifier
+  /// @return `three` The unix timestamp for the start of the third period modifier
+  /// @return `endsale` The unix timestamp of the end of crowdsale
+  /// @return `totalwei` The total amount of wei raised
+  /// @return `totalcents` The total number of USD cents raised
+  /// @return `amount` The amount of DGD tokens available for the crowdsale
+  /// @return `goal` The USD value goal for the crowdsale
   function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents, uint256 amount, uint256 goal);
 
-
+  /// @notice Allows msg.sender to claim the DGD tokens and badges if the goal is reached or refunds the ETH contributed if goal is not reached at the end of the crowdsale
   function claim() returns (bool success);
 
-
+  /// @notice See if the crowdsale goal has been reached
   function goalReached() public constant returns (bool reached);
 
-
+  /// @notice Get the current sale period
+  /// @return `saleperiod` 0 = Outside of the crowdsale period, 1 = First reward period, 2 = Second reward period, 3 = Final crowdsale period.
   function getPeriod() public constant returns (uint saleperiod);
 
-
+  /// @notice Get the date for the start of the crowdsale
+  /// @return `date` The unix timestamp for the start
   function startDate() public constant returns (uint date);
   
-
+  /// @notice Get the date for the second reward period of the crowdsale
+  /// @return `date` The unix timestamp for the second period
   function periodTwo() public constant returns (uint date);
 
-
+  /// @notice Get the date for the final period of the crowdsale
+  /// @return `date` The unix timestamp for the final period
   function periodThree() public constant returns (uint date);
 
-
+  /// @notice Get the date for the end of the crowdsale
+  /// @return `date` The unix timestamp for the end of the crowdsale
   function endDate() public constant returns (uint date);
 
-
   event Purchase(uint256 indexed _exchange, uint256 indexed _rate, uint256 indexed _cents);
-  event Claim(address indexed _user, uint256 indexed _amount);
+  event Claim(address indexed _user, uint256 indexed _amount, uint256 indexed _badges);
 
 }
 
-contract DAOInterface {
+contract SaleProxyInterface {
+  address payoutAddress;
+  address tokenSales;
+}
 
+contract DAOInterface {
+  // WIP
+}
+
+contract ProposalInterface {
+  // WIP
 }
 
 

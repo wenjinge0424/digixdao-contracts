@@ -107,13 +107,17 @@ contract TokenSales is TokenSalesInterface {
     }
 
     if (goalReached()) {
-      buyers[msg.sender].claimed = true;
       address _tokenc = ConfigInterface(config).getConfigAddress("ledger");
       uint256 _tokens = calcShare(buyers[msg.sender].centsTotal, saleInfo.totalCents); 
       uint256 _badges = buyers[msg.sender].centsTotal / 1500000;
-      TokenInterface(_tokenc).mint(msg.sender, _tokens);
-      TokenInterface(_tokenc).mintBadge(msg.sender, _badges);
-      return success;
+      if ((TokenInterface(_tokenc).mint(msg.sender, _tokens)) && (TokenInterface(_tokenc).mintBadge(msg.sender, _badges))) {
+        buyers[msg.sender].claimed = true;
+        Claim(msg.sender, _tokens, _badges);
+        return true;
+      } else {
+        return false;
+      }
+
     }
   }
 
