@@ -168,6 +168,8 @@ contract TokenSalesInterface {
 
   function claim() returns (bool success);
 
+  function goalReached() public constant returns (bool reached);
+
   function getPeriod() public constant returns (uint saleperiod);
 
   event Purchase(uint256 indexed _exchange, uint256 indexed _rate, uint256 indexed _cents);
@@ -175,27 +177,3 @@ contract TokenSalesInterface {
 
 }
 
-contract TickerInterface {
-
-  struct Price {
-    uint256 bid;
-    uint256 ask;
-    uint256 lastUpdate;
-  }
-
-  mapping (address => bool) admins;
-
-  mapping (bytes32 => Price) prices;
-
-  event Update(bytes32 indexed _symbol, uint256 indexed _bid, uint256 indexed _ask);
-
-  event Request(bytes32 indexed _symbol);
-
-  function removeAdmin(address _address) returns (bool success);
-
-  function getPrice(bytes32 _symbol) public constant returns (uint256 bid, uint256 ask, uint256 lastupdate);
-
-  function setPrice(bytes32 _symbol, uint256 _bid, uint256 _ask) returns (bool success);
-
-  function updateReq(bytes32 _symbol) returns(bool success);
-}

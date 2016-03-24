@@ -24,34 +24,13 @@ contract TokenSales is TokenSalesInterface {
     saleInfo.amount = 1700000 * MILLE;
     saleInfo.totalWei = 0;
     saleInfo.totalCents = 0;
+    saleInfo.goal = 50000000;
   }
 
   function () {
     if (!purchase(msg.sender)) {
       throw;
     }
-  }
-
-  function permille(uint256 _a, uint256 _b) public constant returns (uint256 mille) {
-    mille = (MILLE * _a + _b / 2) / _b;
-    return mille;
-  }
-
-  function calcShare(uint256 _contrib, uint256 _total) public constant returns (uint256 share) {
-    uint256 _mille = permille(_contrib, _total);
-    share = ((_mille * saleInfo.amount) / MILLE);
-    return share;
-  }
-
-  function weiToCents(uint256 _wei) public constant returns (uint256 centsvalue) {
-    centsvalue = ((_wei * 100000 / WEI_PER_ETH) * ethToCents) / 100000;
-    return centsvalue;
-  }
-
-  function setEthToCents(uint256 _eth) ifOwner returns (bool success) {
-    ethToCents = _eth;
-    success = true;
-    return success;
   }
 
   function purchase(address _user) returns (bool success) {
@@ -77,6 +56,28 @@ contract TokenSales is TokenSalesInterface {
     return success;
   }
 
+  function permille(uint256 _a, uint256 _b) public constant returns (uint256 mille) {
+    mille = (MILLE * _a + _b / 2) / _b;
+    return mille;
+  }
+
+  function calcShare(uint256 _contrib, uint256 _total) public constant returns (uint256 share) {
+    uint256 _mille = permille(_contrib, _total);
+    share = ((_mille * saleInfo.amount) / MILLE);
+    return share;
+  }
+
+  function weiToCents(uint256 _wei) public constant returns (uint256 centsvalue) {
+    centsvalue = ((_wei * 100000 / WEI_PER_ETH) * ethToCents) / 100000;
+    return centsvalue;
+  }
+
+  function setEthToCents(uint256 _eth) ifOwner returns (bool success) {
+    ethToCents = _eth;
+    success = true;
+    return success;
+  }
+
   function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents) {
     startsale = saleInfo.startDate;
     two = saleInfo.periodTwo;
@@ -86,16 +87,39 @@ contract TokenSales is TokenSalesInterface {
     totalcents = saleInfo.totalCents;
   }
 
+  function goalReached() public constant returns (bool reached) {
+    reached = saleInfo.totalCents >= saleInfo.goal;
+    return reached;
+  }
 
   function claim() returns (bool success) {
-    bool _claimed = buyers[msg.sender].claimed;
-    if ((now < saleInfo.endDate) || (_claimed)) {
-      
-      success = false;
-    } else {
-      success = true;
+    if ( (now < saleInfo.endDate) || (buyers[msg.sender].claimed == true) ) {
+      return false;
     }
-    return success;
+  
+    if (!goalReached()) {
+      if (!address(msg.sender).send(buyers[msg.sender].weiTotal)) throw;
+      buyers[msg.sender].claimed = true;
+      return false;
+    }
+
+    if (goalReached()) {
+      buyers[msg.sender].claimed = true;
+      address _tokenc = ConfigInterface(config).getConfigAddress("ledger");
+      uint256 _tokens = calcShare(buyers[msg.sender].centsTotal, saleInfo.totalCents); 
+      TokenInterface(_tokenc).mint(msg.sender, _tokens);
+      return success;
+    }
+  }
+
+  function release() returns (bool success) {
+    if (now < saleInfo.endDate) {
+      success = false;
+      return success;
+    }
+    if (!goalReached()) {
+
+    }
   }
 
   function getPeriod() public constant returns (uint saleperiod) {
