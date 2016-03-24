@@ -1,5 +1,4 @@
-import "./TokenSalesInterface.sol";
-import "./TokenInterface.sol";
+import "./Interfaces.sol";
 
 // DigixDAO Crowdsale Round 1
 // https://sale.digix.io
@@ -14,17 +13,17 @@ contract TokenSales is TokenSalesInterface {
 
   uint256 public WEI_PER_ETH = 1000000000000000000;
   uint256 public MILLE = 1000000000;
-  uint256 public DGD_TOTAL = 1700000;
 
-  function TokenSales(uint256 _start, uint256 _end, uint256 _ptwo, uint256 _pthree) {
-    saleInfo.startDate = _start;
-    saleInfo.periodTwo = _ptwo;
-    saleInfo.periodThree = _pthree;
-    saleInfo.endDate = _end;
-    saleInfo.amount = DGD_TOTAL * MILLE;
+  function TokenSales(address _config) {
+    owner = msg.sender;
+    config = _config;
+    saleInfo.startDate = ConfigInterface(_config).getConfigUint("sale1:period1");
+    saleInfo.periodTwo = ConfigInterface(_config).getConfigUint("sale1:period2");
+    saleInfo.periodThree = ConfigInterface(_config).getConfigUint("sale1:period3");
+    saleInfo.endDate = ConfigInterface(_config).getConfigUint("sale1:end");
+    saleInfo.amount = 1700000 * MILLE;
     saleInfo.totalWei = 0;
     saleInfo.totalCents = 0;
-    owner = msg.sender;
   }
 
   function () {
@@ -91,6 +90,7 @@ contract TokenSales is TokenSalesInterface {
   function claim() returns (bool success) {
     bool _claimed = buyers[msg.sender].claimed;
     if ((now < saleInfo.endDate) || (_claimed)) {
+      
       success = false;
     } else {
       success = true;

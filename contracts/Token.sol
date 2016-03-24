@@ -1,9 +1,15 @@
 import "./TokenInterface.sol";
+import "./DAOInterface.sol";
 
 contract Token is TokenInterface {
 
   modifier noEther() {
     if (msg.value > 0) throw;
+    _
+  }
+
+  modifier ifDao() {
+    if (msg.sender != dao) throw;
     _
   }
 
@@ -23,7 +29,7 @@ contract Token is TokenInterface {
     seller[_initseller] = true; 
   }
 
-  function transfer(address _to, uint256 _value) noEther returns (bool success) {
+  function transfer(address _to, uint256 _value) returns (bool success) {
     if (balances[msg.sender] >= _value && _value > 0) {
       balances[msg.sender] -= _value;
       balances[_to] += _value;
@@ -35,7 +41,7 @@ contract Token is TokenInterface {
     return success;
   }
 
-  function transferFrom(address _from, address _to, uint256 _value) noEther returns (bool success) {
+  function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {
     if (balances[_from] >= _value && allowed[_from][msg.sender] >= _value && _value > 0) {
       balances[_to] += _value;
       balances[_from] -= _value;

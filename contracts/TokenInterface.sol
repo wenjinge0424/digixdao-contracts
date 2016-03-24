@@ -2,6 +2,14 @@
 
 contract TokenInterface {
 
+    struct User {
+      bool locked;
+      uint256 balance;
+      uint256 badges;
+      mapping (address => uint256) allowed;
+    }
+
+    mapping (address => User) users;
     mapping (address => uint256) balances;
     mapping (address => mapping (address => uint256)) allowed;
     mapping (address => bool) seller;

@@ -19,6 +19,21 @@ end
 coinbase = $ethereum_client.coinbase["result"]
 $accounts = $ethereum_client.accounts["result"].reject {|x| x == coinbase}
 
+$price_ticker = PriceTicker.new
+
+$price_ticker.as(coinbase)
+
+$proposal = DAO.new
+$proposal.as(coinbase)
+$proposal.deploy_and_wait(120, coinbase)
+
+binding.pry
+
+puts "Deploying price feed"
+$price_ticker.deploy_and_wait(120)
+
+binding.pry
+
 $token_sales = TokenSales.new
 $token_sales.as(coinbase)
 

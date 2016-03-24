@@ -1,0 +1,201 @@
+/// @title DigixDAO Contract Interfaces
+
+contract ConfigInterface {
+  address public owner;
+  mapping (address => bool) admins;
+  mapping (bytes32 => address) addressMap;
+  mapping (bytes32 => bool) boolMap;
+  mapping (bytes32 => bytes32) bytesMap;
+  mapping (bytes32 => uint256) uintMap;
+
+  /// @notice setConfigAddress sets configuration `_key` to `_val` 
+  /// @param _key The key name of the configuration.
+  /// @param _val The value of the configuration.
+  /// @return Whether the configuration setting was successful or not.
+  function setConfigAddress(bytes32 _key, address _val) returns (bool success);
+
+  /// @notice setConfigBool sets configuration `_key` to `_val` 
+  /// @param _key The key name of the configuration.
+  /// @param _val The value of the configuration.
+  /// @return Whether the configuration setting was successful or not.
+  function setConfigBool(bytes32 _key, bool _val) returns (bool success);
+
+  /// @notice setConfigBytes sets configuration `_key` to `_val`
+  /// @param _key The key name of the configuration.
+  /// @param _val The value of the configuration.
+  /// @return Whether the configuration setting was successful or not.
+  function setConfigBytes(bytes32 _key, bytes32 _val) returns (bool success);
+
+  /// @notice setConfigUint `_key` to `_val`
+  /// @param _key The key name of the configuration.
+  /// @param _val The value of the configuration.
+  /// @return Whether the configuration setting was successful or not.
+  function setConfigUint(bytes32 _key, uint256 _val) returns (bool success);
+
+  /// @notice getConfigAddress gets configuration `_key`'s value
+  /// @param _key The key name of the configuration.
+  /// @return The configuration value 
+  function getConfigAddress(bytes32 _key) returns (address val);
+
+  /// @notice getConfigBool gets configuration `_key`'s value
+  /// @param _key The key name of the configuration.
+  /// @return The configuration value 
+  function getConfigBool(bytes32 _key) returns (bool val);
+
+  /// @notice getConfigBytes gets configuration `_key`'s value
+  /// @param _key The key name of the configuration.
+  /// @return The configuration value 
+  function getConfigBytes(bytes32 _key) returns (bytes32 val);
+
+  /// @notice getConfigUint gets configuration `_key`'s value
+  /// @param _key The key name of the configuration.
+  /// @return The configuration value 
+  function getConfigUint(bytes32 _key) returns (uint256 val);
+
+  /// @notice addAdmin sets `_admin` as configuration admin
+  /// @return Whether the configuration setting was successful or not.  
+  function addAdmin(address _admin) returns (bool success);
+
+  /// @notice removeAdmin removes  `_admin`'s rights
+  /// @param _admin The key name of the configuration.
+  /// @return Whether the configuration setting was successful or not.  
+  function removeAdmin(address _admin) returns (bool success);
+}
+
+contract TokenInterface {
+
+  struct User {
+    bool locked;
+    uint256 balance;
+    uint256 badges;
+    mapping (address => uint256) allowed;
+  }
+
+  mapping (address => User) users;
+  mapping (address => uint256) balances;
+  mapping (address => mapping (address => uint256)) allowed;
+  mapping (address => bool) seller;
+
+  address config;
+  address owner;
+
+  /// @return total amount of tokens
+  uint256 public totalSupply;
+
+  /// @param _owner The address from which the balance will be retrieved
+  /// @return The balance
+  function balanceOf(address _owner) constant returns (uint256 balance);
+
+  /// @notice send `_value` tokens to `_to` from `msg.sender`
+  /// @param _to The address of the recipient
+  /// @param _value The amount of tokens to be transfered
+  /// @return Whether the transfer was successful or not
+  function transfer(address _to, uint256 _value) returns (bool success);
+
+  /// @notice send `_value` tokens to `_to` from `_from` on the condition it is approved by `_from`
+  /// @param _from The address of the sender
+  /// @param _to The address of the recipient
+  /// @param _value The amount of tokens to be transfered
+  /// @return Whether the transfer was successful or not
+  function transferFrom(address _from, address _to, uint256 _value) returns (bool success);
+
+  /// @notice `msg.sender` approves `_spender` to spend `_value` tokens on its behalf
+  /// @param _spender The address of the account able to transfer the tokens
+  /// @param _value The amount of tokens to be approved for transfer
+  /// @return Whether the approval was successful or not
+  function approve(address _spender, uint256 _value) returns (bool success);
+
+  /// @param _owner The address of the account owning tokens
+  /// @param _spender The address of the account able to transfer the tokens
+  /// @return Amount of remaining tokens of _owner that _spender is allowed to spend
+  function allowance(address _owner, address _spender) constant returns (uint256 remaining);
+
+  /// @notice mint `_amount` of tokens to `_owner`
+  /// @param _owner The address of the account receiving the tokens
+  /// @param _amount The amount of tokens to mint
+  /// @return Whether or not minting was successful
+  function mint(address _owner, uint256 _amount) returns (bool success);
+
+  event Transfer(address indexed _from, address indexed _to, uint256 _value);
+  event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+}
+
+contract TokenSalesInterface {
+
+  struct Info {
+    uint256 startDate;
+    uint256 endDate;
+    uint256 periodTwo;
+    uint256 periodThree;
+    uint256 totalWei;
+    uint256 totalCents;
+    uint256 amount;
+    uint256 goal;
+  }
+
+  struct Buyer {
+    uint256 centsTotal;
+    uint256 weiTotal;
+    bool claimed;
+  }
+
+  Info saleInfo;
+
+  address config;
+  address owner;
+
+  uint256 public ethToCents;
+  uint256 public periodTwo;
+  uint256 public periodThree;
+
+  mapping (address => Buyer) buyers;
+
+  function permille(uint256 _a, uint256 _b) public constant returns (uint256 c);
+
+  function calcShare(uint256 _contrib, uint256 _total) public constant returns (uint256 share);
+
+  function weiToCents(uint256 _wei) public constant returns (uint256 centsvalue);
+
+  function purchase(address _user) returns (bool success);
+
+  function userInfo(address _user) public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, uint badges, bool claimed); 
+
+  function totalWei() public constant returns (uint);
+
+  function totalCents() public constant returns (uint);
+
+  function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents);
+
+  function claim() returns (bool success);
+
+  function getPeriod() public constant returns (uint saleperiod);
+
+  event Purchase(uint256 indexed _exchange, uint256 indexed _rate, uint256 indexed _cents);
+  event Claim(address indexed _user, uint256 indexed _amount);
+
+}
+
+contract TickerInterface {
+
+  struct Price {
+    uint256 bid;
+    uint256 ask;
+    uint256 lastUpdate;
+  }
+
+  mapping (address => bool) admins;
+
+  mapping (bytes32 => Price) prices;
+
+  event Update(bytes32 indexed _symbol, uint256 indexed _bid, uint256 indexed _ask);
+
+  event Request(bytes32 indexed _symbol);
+
+  function removeAdmin(address _address) returns (bool success);
+
+  function getPrice(bytes32 _symbol) public constant returns (uint256 bid, uint256 ask, uint256 lastupdate);
+
+  function setPrice(bytes32 _symbol, uint256 _bid, uint256 _ask) returns (bool success);
+
+  function updateReq(bytes32 _symbol) returns(bool success);
+}
