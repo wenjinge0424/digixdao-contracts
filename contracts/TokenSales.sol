@@ -6,8 +6,7 @@ import "./Interfaces.sol";
 contract TokenSales is TokenSalesInterface {
 
   modifier ifOwner() {
-    if (msg.sender != owner)
-      throw;
+    if (msg.sender != owner) throw;
     _
   }
 
@@ -112,16 +111,6 @@ contract TokenSales is TokenSalesInterface {
     }
   }
 
-  function release() returns (bool success) {
-    if (now < saleInfo.endDate) {
-      success = false;
-      return success;
-    }
-    if (!goalReached()) {
-
-    }
-  }
-
   function getPeriod() public constant returns (uint saleperiod) {
     if ((now > saleInfo.endDate) || (now < saleInfo.startDate)) {
       saleperiod = 0;
@@ -145,6 +134,10 @@ contract TokenSales is TokenSalesInterface {
     share = calcShare(buyers[_user].centsTotal, saleInfo.totalCents);
     badges = buyers[_user].centsTotal / 1500000;
     return (buyers[_user].centsTotal, buyers[_user].weiTotal, share, badges, buyers[_user].claimed);
+  }
+
+  function myInfo() public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, uint badges, bool claimed) {
+    return userInfo(msg.sender);
   }
 
 

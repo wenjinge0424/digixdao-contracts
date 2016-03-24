@@ -160,6 +160,8 @@ contract TokenSalesInterface {
 
   function userInfo(address _user) public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, uint badges, bool claimed); 
 
+  function myInfo() public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, uint badges, bool claimed); 
+
   function totalWei() public constant returns (uint);
 
   function totalCents() public constant returns (uint);
