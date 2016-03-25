@@ -13,6 +13,7 @@ $ethereum_client = Ethereum::HttpClient.new("localhost", "8545")
 $eth = $ethereum_client
 $formatter = Ethereum::Formatter.new
 $f = $formatter
+environment = ARGV[0] || "development"
 
 project.contracts.each do |contract|
   contract.build($ethereum_client)
@@ -60,9 +61,9 @@ token_sales.deploy_and_wait(120, config.address)
 token_sales.tw_set_eth_to_cents(1180)
 
 
-build_dir = File.join(ENV['PWD'], "build")
+build_dir = File.join(ENV['PWD'], "build", environment)
 FileUtils.rm_rf(build_dir) if Dir.exists?(build_dir)
-FileUtils.mkdir(build_dir)
+FileUtils.mkdir_p(build_dir)
 
 def build_contract(contract_name, p, build_dir)
   contract = p.contracts[p.contract_names.index(contract_name)]
@@ -77,10 +78,8 @@ end
 build_contract("TokenSales", project, build_dir)
 build_contract("Config", project, build_dir)
 
-appconfig = {token_sales_address: token_sales.address, config_address: config.address}
+appconfig = {owner: coinbase, token_sales_address: token_sales.address, config_address: config.address}
 
-File.open(File.join(build_dir, "app_config.js"), 'w') do |file|
+File.open(File.join(build_dir, "app_config.json"), 'w') do |file|
   file.puts JSON.pretty_generate(appconfig)
 end
-
-
