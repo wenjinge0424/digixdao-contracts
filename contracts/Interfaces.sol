@@ -140,6 +140,11 @@ contract TokenInterface {
 
 contract TokenSalesInterface {
 
+  struct SaleProxy {
+    address payout;
+    bool isProxy;
+  }
+
   struct Info {
     uint256 startDate;
     uint256 periodTwo;
@@ -149,6 +154,9 @@ contract TokenSalesInterface {
     uint256 totalCents;
     uint256 amount;
     uint256 goal;
+    uint256 founderAmount;
+    address founderWallet;
+    bool founderClaim;
   }
 
   struct Buyer {
@@ -165,6 +173,7 @@ contract TokenSalesInterface {
   uint256 public ethToCents;
 
   mapping (address => Buyer) buyers;
+  mapping (address => SaleProxy) proxies;
 
   /// @notice Calculates the parts per billion 1⁄1,000,000,000 of `_a` to `_b`
   /// @param _a The antecedent
@@ -187,7 +196,7 @@ contract TokenSalesInterface {
   /// @notice Send msg.value purchase for _user.  
   /// @param _user The account to be credited
   /// @return Success if purchase was accepted
-  function purchase(address _user) returns (bool success);
+  function purchase(address _user, uint256 _amount) private returns (bool success);
 
   /// @notice Get crowdsale information for `_user`
   /// @param _user The account to be queried
@@ -218,7 +227,9 @@ contract TokenSalesInterface {
   /// @return `totalcents` The total number of USD cents raised
   /// @return `amount` The amount of DGD tokens available for the crowdsale
   /// @return `goal` The USD value goal for the crowdsale
-  function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents, uint256 amount, uint256 goal);
+  /// @return `famount` Founders endowment
+  /// @return `faddress` Founder wallet address
+  function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents, uint256 amount, uint256 goal, uint256 famount, address faddress);
 
   /// @notice Allows msg.sender to claim the DGD tokens and badges if the goal is reached or refunds the ETH contributed if goal is not reached at the end of the crowdsale
   function claim() returns (bool success);
@@ -246,14 +257,22 @@ contract TokenSalesInterface {
   /// @return `date` The unix timestamp for the end of the crowdsale
   function endDate() public constant returns (uint date);
 
+  /// @notice Check if crowdsale has ended
+  /// @return `ended` If the crowdsale has ended
+  
+  function isEnded() public constant returns (bool ended);
+
+  /// @notice Send raised funds from the crowdsale to the DAO
+  /// @return `success` if the send succeeded
+  function sendFunds() public returns (bool success);
+
+  function regProxy(address _payment, address _payout) returns (bool success);
+
+  function getProxy(address _proxy) public returns (address payout, bool isproxy);
+  
   event Purchase(uint256 indexed _exchange, uint256 indexed _rate, uint256 indexed _cents);
   event Claim(address indexed _user, uint256 indexed _amount, uint256 indexed _badges);
 
-}
-
-contract SaleProxyInterface {
-  address payoutAddress;
-  address tokenSales;
 }
 
 contract DAOInterface {

@@ -5,7 +5,7 @@ contract Config is ConfigInterface {
   event ConfigChange(bytes32 indexed _configKey, address indexed _user);
 
   modifier ifAdmin() {
-    if ((msg.sender != owner) || (admins[msg.sender] == false)) throw;
+    if (admins[msg.sender] == false) throw;
     _
   }
 
@@ -16,6 +16,7 @@ contract Config is ConfigInterface {
 
   function Config() {
     owner = msg.sender;
+    admins[msg.sender] = true;
   }
 
   function setConfigAddress(bytes32 _key, address _val) ifAdmin returns (bool success) {

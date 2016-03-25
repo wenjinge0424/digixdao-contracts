@@ -10,6 +10,11 @@ contract TokenSales is TokenSalesInterface {
     _
   }
 
+  modifier ifOOrigin() {
+    if (tx.origin != owner) throw;
+    _
+  }
+
   uint256 public WEI_PER_ETH = 1000000000000000000;
   uint256 public BILLION = 1000000000;
 
@@ -26,35 +31,42 @@ contract TokenSales is TokenSalesInterface {
     saleInfo.goal = ConfigInterface(_config).getConfigUint("sale1:goal");
     saleInfo.totalWei = 0;
     saleInfo.totalCents = 0;
+    saleInfo.founderAmount = ConfigInterface(_config).getConfigUint("sale1:famount") * BILLION;
+    saleInfo.founderWallet = ConfigInterface(_config).getConfigAddress("sale1:fwallet");
+    saleInfo.founderClaim = false;
   }
 
-  function () {
-    if (!purchase(msg.sender)) {
-      throw;
+  function () returns (bool success) {
+    uint256 _amount = msg.value;
+    address _sender;
+    if (proxies[msg.sender].isProxy == true) {
+      _sender = proxies[msg.sender].payout;
+    } else {
+      _sender = msg.sender;
     }
+    return purchase(_sender, _amount);
   }
 
-  function purchase(address _user) returns (bool success) {
-    uint256 _cents = weiToCents(msg.value);
-    uint256 _wei = msg.value;
+  function purchase(address _user, uint256 _amount) private returns (bool success) {
+    uint256 _cents = weiToCents(_amount);
+    uint256 _wei = _amount;
     uint256 _modifier;
     uint _period = getPeriod();
     if ((_period == 0) || (_cents == 0)) {
-      success = false;
+      return false;
     } else {
       if (_period == 3) _modifier = 100;
       if (_period == 2) _modifier = 115;
       if (_period == 1) _modifier = 130;
-      uint256 _creditwei = msg.value;
+      uint256 _creditwei = _amount;
       uint256 _creditcents = (weiToCents(_creditwei) * _modifier * 10000) / 1000000 ;
       buyers[_user].centsTotal += _creditcents;
       buyers[_user].weiTotal += _creditwei; 
       saleInfo.totalCents += _creditcents;
       saleInfo.totalWei += _creditwei;
       Purchase(ethToCents, _modifier, _creditcents); 
-      success = true;
+      return true;
     }
-    return success;
   }
 
   function ppb(uint256 _a, uint256 _c) public constant returns (uint256 b) {
@@ -79,7 +91,7 @@ contract TokenSales is TokenSalesInterface {
     return success;
   }
 
-  function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents, uint256 amount, uint256 goal) {
+  function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents, uint256 amount, uint256 goal, uint256 famount, address faddress) {
     startsale = saleInfo.startDate;
     two = saleInfo.periodTwo;
     three = saleInfo.periodThree;
@@ -88,6 +100,8 @@ contract TokenSales is TokenSalesInterface {
     totalcents = saleInfo.totalCents;
     amount = saleInfo.amount;
     goal = saleInfo.goal;
+    famount = saleInfo.founderAmount;
+    faddress = saleInfo.founderWallet;
   }
 
   function goalReached() public constant returns (bool reached) {
@@ -117,7 +131,23 @@ contract TokenSales is TokenSalesInterface {
       } else {
         return false;
       }
+    }
+  }
 
+  function claimFounders() returns (bool success) {
+    if (saleInfo.founderClaim == true) return false;
+    if (now < saleInfo.endDate) return false;
+    if (!goalReached()) return false;
+    address _tokenc = ConfigInterface(config).getConfigAddress("ledger");
+    uint256 _tokens = saleInfo.founderAmount;
+    uint256 _badges = 4;
+    address _faddr = saleInfo.founderWallet;
+    if ((TokenInterface(_tokenc).mint(_faddr, _tokens)) && (TokenInterface(_tokenc).mintBadge(_faddr, _badges))) {
+      saleInfo.founderClaim = true;
+      Claim(_faddr, _tokens, _badges);
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -150,7 +180,6 @@ contract TokenSales is TokenSalesInterface {
     return userInfo(msg.sender);
   }
 
-
   function totalWei() public constant returns (uint) {
     return saleInfo.totalWei;
   }
@@ -174,5 +203,25 @@ contract TokenSales is TokenSalesInterface {
   function endDate() public constant returns (uint date) {
     return saleInfo.endDate;
   }
+
+  function isEnded() public constant returns (bool ended) {
+    return (now > endDate());
+  }
   
+  function sendFunds() public returns (bool success) {
+    if (!goalReached()) return false;
+    if (!isEnded()) return false;
+    address _dao = ConfigInterface(config).getConfigAddress("sale1:dao");
+    return _dao.send(totalWei());
+  }
+
+  function regProxy(address _payment, address _payout) ifOOrigin returns (bool success) {
+    proxies[_payment].payout = _payout;
+    proxies[_payment].isProxy = true;
+    return true;
+  }
+
+  function getProxy(address _proxy) public returns (address payout, bool isproxy) {
+    return (proxies[_proxy].payout, proxies[_proxy].isProxy);
+  }
 }

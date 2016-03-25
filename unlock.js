@@ -7,8 +7,3 @@ eth.accounts.forEach(function(account) {
 
 console.log("Testnet ready");
 
-
-var b = true;
-while(b) {
-  b = true;
-}
