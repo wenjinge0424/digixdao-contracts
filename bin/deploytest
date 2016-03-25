@@ -18,12 +18,9 @@ project.contracts.each do |contract|
   contract.build($ethereum_client)
 end
 
+
 coinbase = $ethereum_client.coinbase["result"]
 
-accounts = $ethereum_client.accounts["result"]
-
-test_user = accounts[15]
-proxy_user = accounts[16]
 
 gas_price = $formatter.to_wei(20, 'shannon')
 config = Config.new
@@ -61,144 +58,29 @@ token_sales.set_gas(3000000)
 token_sales.set_gas_price(gas_price)
 token_sales.deploy_and_wait(120, config.address)
 token_sales.tw_set_eth_to_cents(1180)
-value = "0x" + $formatter.to_wei(300000, 'ether').to_s(16)
-
-#$ethereum_client.send_transaction({from: coinbase, to: token_sales.address, value: value, gas: 500000, gasPrice: gas_price})
-
-proxy_send_amount = "0x" + $formatter.to_wei(5, 'ether').to_s(16)
-$ethereum_client.send_transaction({from: coinbase, to: token_sales.address, value: proxy_send_amount, gas: 104765, gasPrice: gas_price})
-
-binding.pry
 
 
-#$accounts = $ethereum_client.accounts["result"].reject {|x| x == coinbase}
+build_dir = File.join(ENV['PWD'], "build")
+FileUtils.rm_rf(build_dir) if Dir.exists?(build_dir)
+FileUtils.mkdir(build_dir)
 
-#$price_ticker = PriceTicker.new
+def build_contract(contract_name, p, build_dir)
+  contract = p.contracts[p.contract_names.index(contract_name)]
+  abi_file = File.new(File.join(build_dir, "#{contract_name}.abi"), 'w')
+  abi_file.puts JSON.pretty_generate(contract.abi)
+  bin_file = File.new(File.join(build_dir, "#{contract_name}.bin"), 'w')
+  bin_file.puts contract.binary
+  abi_file.close
+  bin_file.close
+end
 
-#$price_ticker.as(coinbase)
+build_contract("TokenSales", project, build_dir)
+build_contract("Config", project, build_dir)
 
-#$proposal = DAO.new
-#$proposal.as(coinbase)
-#$proposal.deploy_and_wait(120, coinbase)
+appconfig = {token_sales_address: token_sales.address, config_address: config.address}
 
-#binding.pry
-
-#puts "Deploying price feed"
-#$price_ticker.deploy_and_wait(120)
-
-#binding.pry
-
-#$token_sales = TokenSales.new
-#$token_sales.as(coinbase)
-
-#start_date = (Time.now + 30.seconds).to_i
-#period_two = (start_date + 60.seconds).to_i
-#period_three = (start_date + 300.seconds).to_i
-#end_date = (start_date + 600.seconds).to_i
-
-#puts "Deploying Contracts".colorize(:light_blue)
-# function TokenSales(uint256 _start, uint256 _end, uint256 _ptwo, uint256 _pthree) {
-#$token_sales.deploy_and_wait(120, start_date, end_date, period_two, period_three)
-#$token_sales.as($token_sales.c_owner)
-#puts "Setting default ETH price to 10.70".colorize(:light_green)
-#$token_sales.tw_set_eth_to_cents(1070)
-
-#$formatter = Ethereum::Formatter.new
-
-#def crowdsale_payment
-  #amount = [SecureRandom.random_number(9.99), SecureRandom.random_number(0.99), SecureRandom.random_number(99.99), SecureRandom.random_number(9999.9999), SecureRandom.random_number(9999), SecureRandom.random_number(999), SecureRandom.random_number(99999)].sample.round(4)
-  #eth_usd = [1190, 1180, 1150, 1100, 1095, 1215, 995, 1115, 1000, 1010, 1110, 1120, 1130, 1140, 1150].sample
-  #$token_sales.t_set_eth_to_cents(eth_usd)
-  #value = "0x" + $formatter.to_wei(amount, 'ether').to_s(16)
-  #account = $accounts.sample
-  #puts "Sending #{amount.to_s.colorize(:green)} ETH from #{account.colorize(:magenta)} during crowdsale period #{$token_sales.c_get_period.to_s.colorize(:light_blue)} at ETHUSD rate #{($token_sales.c_eth_to_cents / 100.00).to_s.colorize(:light_green)}"
-  #period = $token_sales.c_get_period
-  #rate = $token_sales.c_eth_to_cents / 100.0
-  #tx = $ethereum_client.send_transaction({from: account, to: $token_sales.address, value: value, gas: 200000})["result"]
-  #sleep 1
-  #return [account, amount, period, rate, tx]
-#end
-
-#$payments = []
-#1000.times do 
-  #$payments << crowdsale_payment
-#end
-
-#sleep 60
-
-#shares = $accounts.collect {|x| $token_sales.c_user_info(x)[2] }
-#total_coins = shares.inject {|sum, y| sum + y}
-
-#def collect_logs
-  #filter = $token_sales.nf_purchase
-  #logs = $token_sales.gfl_purchase(filter)
-  #return logs
-#end
-
-#$my_logs = collect_logs
-
-#def collect_data
-  #data_set = []
-  #$payments.each do |payment|
-    #account = payment[0]
-    #eth_amount = payment[1]
-    #period = payment[2]
-    #rate = payment[3] 
-    #tx_hash = payment[4]
-    #tx = $ethereum_client.get_transaction_by_hash(tx_hash)["result"]
-    #value = $formatter.from_wei(tx["value"].hex, 'ether').to_f
-    #gas = tx["gas"].hex
-    #log = $my_logs.detect {|x| x[:transactionHash] == tx_hash}
-    #if log.present?
-      #modifier = log[:topics][1] / 100.0
-      #logged_cents = log[:topics][2] / 100.0
-      #exchange_rate = log[:topics][0] / 100.0
-    #else
-      #modifier = 0.0
-      #logged_cents = 0.0
-      #eth_recorded = 0.0
-    #end
-    #data_set << {account: account, eth_sent: value, exchange_rate: exchange_rate, period: period, modifier: modifier, usd: logged_cents}
-  #end
-  #return data_set
-#end
-
-#$my_data = collect_data
-
-#def write_csv
-  #csv_file = File.new("/tmp/daosales_#{Time.now.to_i}.csv", 'w')
-  #csv_file.puts("account,ether_sent,exchange_rate,period_modifier,usd_credited")
-
-  #$my_data.each do |data|
-    #csv_file.puts "#{data[:account]},#{data[:eth_sent]},#{data[:exchange_rate]},#{data[:modifier]},#{data[:usd]}"
-  #end
-
-  #csv_file.close
-#end
-
-#def write_share_csv
-  #csv_file = File.new("/tmp/daoshares_#{Time.now.to_i}.csv", 'w')
-  #csv_file.puts "account,usd,ether,share,badges"
-  #$accounts.each do |account|
-    #x = $token_sales.c_user_info(account)
-    #csv_file.puts "#{account},#{x[0] / 100.0},#{$formatter.from_wei(x[1], 'ether')},#{x[2] / 1000000000.0},#{x[3]}"
-  #end
-  #csv_file.close
-#end
-
-#binding.pry
-
-#priceTicker = PriceTicker.new
-#priceTicker.as(coinbase)
-
-#puts "Deploying PriceTicker"
-#priceTicker.deploy_and_wait
-
-#token = Token.new
-#token.as(coinbase)
-#puts "Deploying Token"
-#token.deploy_and_wait(120, coinbase)
-
-
+File.open(File.join(build_dir, "app_config.js"), 'w') do |file|
+  file.puts JSON.pretty_generate(appconfig)
+end
 
 
