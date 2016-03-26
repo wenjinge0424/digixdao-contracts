@@ -91,8 +91,9 @@ end
 
 build_contract("TokenSales", project, build_dir)
 build_contract("Config", project, build_dir)
+build_contract("Token", project, build_dir)
 
-appconfig = {owner: coinbase, token_sales_address: token_sales.address, config_address: config.address}
+appconfig = {owner: coinbase, token_sales_address: token_sales.address, config_address: config.address, ledger_address: token_ledger.address}
 
 File.open(File.join(build_dir, "app_config.json"), 'w') do |file|
   file.puts JSON.pretty_generate(appconfig)
