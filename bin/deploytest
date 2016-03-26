@@ -66,14 +66,16 @@ token_sales.as(coinbase)
 token_sales.set_gas(3000000)
 token_sales.set_gas_price(gas_price)
 token_sales.deploy_and_wait(120, config.address)
-token_sales.tw_set_eth_to_cents(1180)
 config.tw_set_config_address("sale1:address", token_sales.address)
+puts "Crowdsale configured token sale contract: #{config.c_get_config_address("sale1:address")}"
+token_sales.tw_set_eth_to_cents(1180)
 token_ledger = Token.new
 token_ledger.as(coinbase)
 token_ledger.set_gas(3000000)
 token_ledger.set_gas_price(gas_price)
 token_ledger.deploy_and_wait(120, config.address)
 config.tw_set_config_address("ledger", token_ledger.address)
+puts "Crowdsale configured ledger contract: #{config.c_get_config_address("ledger")}"
 
 build_dir = File.join(ENV['PWD'], "build", environment)
 FileUtils.rm_rf(build_dir) if Dir.exists?(build_dir)
