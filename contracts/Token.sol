@@ -12,7 +12,10 @@ contract Token is TokenInterface {
     _ 
   }
 
-  function Token(address _initseller) {
+  function Token(address _config) {
+    config = _config;
+    owner = msg.sender;
+    address _initseller = ConfigInterface(_config).getConfigAddress("sale1:address");
     seller[_initseller] = true; 
   }
 
