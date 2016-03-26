@@ -10,6 +10,7 @@ require 'securerandom'
 base_dir = ENV['PWD']
 project = Ethereum::ProjectInitializer.new("#{base_dir}/contracts/*.sol", true)
 $ethereum_client = Ethereum::HttpClient.new("localhost", "8545")
+$ipc_client = Ethereum::IpcClient.new("#{ENV['HOME']}/Library/Ethereum/geth.ipc")
 $eth = $ethereum_client
 $formatter = Ethereum::Formatter.new
 $f = $formatter
@@ -19,8 +20,15 @@ project.contracts.each do |contract|
   contract.build($ethereum_client)
 end
 
+if environment == "development"
+  coinbase = $ethereum_client.coinbase["result"]
+end
 
-coinbase = $ethereum_client.coinbase["result"]
+if environment == "staging"
+  coinbase = "0xdb7ee609d57ef548b929dd26117b4d8043229e67"
+end
+
+
 
 
 gas_price = $formatter.to_wei(20, 'shannon')
@@ -30,10 +38,10 @@ config.set_gas(2000000)
 config.set_gas_price(gas_price)
 config.deploy_and_wait(120)
 
-period_one = (Time.now).to_i
-period_two = (period_one + 4.hours).to_i
-period_three = (period_one + 8.hours).to_i
-end_date = (period_one + 12.hours).to_i
+period_one = (Time.now + 1.hours).to_i
+period_two = (period_one + 2.hours).to_i
+period_three = (period_one + 3.hours).to_i
+end_date = (period_one + 4.hours).to_i
 
 config.tw_set_config_uint("sale1:period1", period_one)
 config.tw_set_config_uint("sale1:period2", period_two)

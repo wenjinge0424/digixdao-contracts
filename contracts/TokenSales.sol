@@ -36,7 +36,8 @@ contract TokenSales is TokenSalesInterface {
     saleInfo.founderClaim = false;
   }
 
-  function () returns (bool success) {
+  function () {
+    if (getPeriod() == 0) throw;
     uint256 _amount = msg.value;
     address _sender;
     if (proxies[msg.sender].isProxy == true) {
@@ -44,7 +45,7 @@ contract TokenSales is TokenSalesInterface {
     } else {
       _sender = msg.sender;
     }
-    return purchase(_sender, _amount);
+    if (!purchase(_sender, _amount)) throw;
   }
 
   function purchase(address _user, uint256 _amount) private returns (bool success) {
@@ -111,13 +112,13 @@ contract TokenSales is TokenSalesInterface {
 
   function claim() returns (bool success) {
     if ( (now < saleInfo.endDate) || (buyers[msg.sender].claimed == true) ) {
-      return false;
+      return true;
     }
   
     if (!goalReached()) {
       if (!address(msg.sender).send(buyers[msg.sender].weiTotal)) throw;
       buyers[msg.sender].claimed = true;
-      return false;
+      return true;
     }
 
     if (goalReached()) {
