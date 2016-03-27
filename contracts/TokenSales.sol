@@ -106,28 +106,32 @@ contract TokenSales is TokenSalesInterface {
   }
 
   function goalReached() public constant returns (bool reached) {
-    reached = saleInfo.totalCents >= saleInfo.goal;
+    reached = (saleInfo.totalCents >= saleInfo.goal);
     return reached;
   }
 
   function claim() returns (bool success) {
-    if ( (now < saleInfo.endDate) || (buyers[msg.sender].claimed == true) ) {
+    return claimFor(msg.sender);
+  }
+
+  function claimFor(address _user) returns (bool success) {
+    if ( (now < saleInfo.endDate) || (buyers[_user].claimed == true) ) {
       return true;
     }
   
     if (!goalReached()) {
-      if (!address(msg.sender).send(buyers[msg.sender].weiTotal)) throw;
-      buyers[msg.sender].claimed = true;
+      if (!address(_user).send(buyers[_user].weiTotal)) throw;
+      buyers[_user].claimed = true;
       return true;
     }
 
     if (goalReached()) {
       address _tokenc = ConfigInterface(config).getConfigAddress("ledger");
-      uint256 _tokens = calcShare(buyers[msg.sender].centsTotal, saleInfo.totalCents); 
-      uint256 _badges = buyers[msg.sender].centsTotal / 1500000;
-      if ((TokenInterface(_tokenc).mint(msg.sender, _tokens)) && (TokenInterface(_tokenc).mintBadge(msg.sender, _badges))) {
-        buyers[msg.sender].claimed = true;
-        Claim(msg.sender, _tokens, _badges);
+      uint256 _tokens = calcShare(buyers[_user].centsTotal, saleInfo.totalCents); 
+      uint256 _badges = buyers[_user].centsTotal / 1500000;
+      if ((TokenInterface(_tokenc).mint(msg.sender, _tokens)) && (TokenInterface(_tokenc).mintBadge(_user, _badges))) {
+        buyers[_user].claimed = true;
+        Claim(_user, _tokens, _badges);
         return true;
       } else {
         return false;
@@ -213,6 +217,7 @@ contract TokenSales is TokenSalesInterface {
     if (!goalReached()) return false;
     if (!isEnded()) return false;
     address _dao = ConfigInterface(config).getConfigAddress("sale1:dao");
+    if (_dao == 0x0000000000000000000000000000000000000000) return false;
     return _dao.send(totalWei());
   }
 

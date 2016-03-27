@@ -77,12 +77,12 @@ contract Token is TokenInterface {
   function mint(address _owner, uint256 _amount) ifSales returns (bool success) {
     totalSupply += _amount;
     users[_owner].balance += _amount;
-    return success;
+    return true;
   }
 
   function mintBadge(address _owner, uint256 _amount) ifSales returns (bool success) {
     totalBadges += _amount;
     users[_owner].badges += _amount;
-    return success;
+    return true;
   }
 }

@@ -51,6 +51,7 @@ config.tw_set_config_uint("sale1:amount", 1_700_000)
 config.tw_set_config_uint("sale1:goal", 50000)
 config.tw_set_config_uint("sale1:famount", 300_000)
 config.tw_set_config_address("sale1:fwallet", coinbase)
+config.tw_set_config_address("sale1:dao", coinbase)
 
 puts "Crowdsale configured start: #{config.c_get_config_uint("sale1:period1")}"
 puts "Crowdsale configured period 2: #{config.c_get_config_uint("sale1:period2")}"
