@@ -38,17 +38,17 @@ config.set_gas(2000000)
 config.set_gas_price(gas_price)
 config.deploy_and_wait(120)
 
-period_one = (Time.now + 1.hours).to_i
-period_two = (period_one + 2.hours).to_i
-period_three = (period_one + 3.hours).to_i
-end_date = (period_one + 4.hours).to_i
+period_one = (Time.now + 30.minutes).to_i
+period_two = (period_one + 30.minutes).to_i
+period_three = (period_two + 30.minutes).to_i
+end_date = (period_three + 30.hours).to_i
 
 config.tw_set_config_uint("sale1:period1", period_one)
 config.tw_set_config_uint("sale1:period2", period_two)
 config.tw_set_config_uint("sale1:period3", period_three)
 config.tw_set_config_uint("sale1:end", end_date)
 config.tw_set_config_uint("sale1:amount", 1_700_000)
-config.tw_set_config_uint("sale1:goal", 50000)
+config.tw_set_config_uint("sale1:goal", 10000)
 config.tw_set_config_uint("sale1:famount", 300_000)
 config.tw_set_config_address("sale1:fwallet", coinbase)
 config.tw_set_config_address("sale1:dao", coinbase)
