@@ -4,6 +4,7 @@ require 'ethereum'
 require 'active_support'
 require 'active_support/core_ext'
 require 'colorize'
+require 'tty'
 require 'pry'
 require 'securerandom'
 
@@ -28,6 +29,10 @@ if environment == "staging"
   coinbase = "0xdb7ee609d57ef548b929dd26117b4d8043229e67"
 end
 
+if environment == "production"
+  coinbase = "0xf2b4bbb5e8c018fe27d71ac2577288f3f5a6a99d"
+end
+
 
 
 
@@ -36,47 +41,64 @@ config = Config.new
 config.as(coinbase)
 config.set_gas(2000000)
 config.set_gas_price(gas_price)
+puts "Deploying Configuration".colorize(:light_magenta)
 config.deploy_and_wait(120)
 
-period_one = (Time.now + 30.minutes).to_i
-period_two = (period_one + 30.minutes).to_i
-period_three = (period_two + 30.minutes).to_i
-end_date = (period_three + 30.hours).to_i
+period_one = (DateTime.now.utc + 20.minutes).to_i
+period_two = (period_one + 15.minutes).to_i
+period_three = (period_two + 15.minutes).to_i
+end_date = (period_three + 15.minutes).to_i
 
+bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 20)
+puts "Setting Configurations".colorize(:light_magenta)
+2.times { bar.advance }
 config.tw_set_config_uint("sale1:period1", period_one)
+2.times { bar.advance }
 config.tw_set_config_uint("sale1:period2", period_two)
+2.times { bar.advance }
 config.tw_set_config_uint("sale1:period3", period_three)
+2.times { bar.advance }
 config.tw_set_config_uint("sale1:end", end_date)
+2.times { bar.advance }
 config.tw_set_config_uint("sale1:amount", 1_700_000)
+2.times { bar.advance }
 config.tw_set_config_uint("sale1:goal", 10000)
+2.times { bar.advance }
 config.tw_set_config_uint("sale1:famount", 300_000)
+2.times { bar.advance }
 config.tw_set_config_address("sale1:fwallet", coinbase)
+2.times { bar.advance }
 config.tw_set_config_address("sale1:dao", coinbase)
+2.times { bar.advance }
 
-puts "Crowdsale configured start: #{config.c_get_config_uint("sale1:period1")}"
-puts "Crowdsale configured period 2: #{config.c_get_config_uint("sale1:period2")}"
-puts "Crowdsale configured period 3: #{config.c_get_config_uint("sale1:period3")}"
-puts "Crowdsale configured end: #{config.c_get_config_uint("sale1:end")}"
-puts "Crowdsale configured total DAO tokens: #{config.c_get_config_uint("sale1:amount")}"
-puts "Crowdsale configured USD cents goal: #{config.c_get_config_uint("sale1:goal")}"
-puts "Crowdsale configured total DAO tokens for founders: #{config.c_get_config_uint("sale1:famount")}"
-puts "Crowdsale configured founder wallet: #{config.c_get_config_address("sale1:fwallet")}"
+puts "Crowdsale configured start: #{config.c_get_config_uint("sale1:period1").to_s.colorize(:light_blue)}"
+puts "Crowdsale configured period 2: #{config.c_get_config_uint("sale1:period2").to_s.colorize(:light_blue)}"
+puts "Crowdsale configured period 3: #{config.c_get_config_uint("sale1:period3").to_s.colorize(:light_blue)}"
+puts "Crowdsale configured end: #{config.c_get_config_uint("sale1:end").to_s.colorize(:light_blue)}"
+puts "Crowdsale configured total DAO tokens: #{config.c_get_config_uint("sale1:amount").to_s.colorize(:light_blue)}"
+puts "Crowdsale configured USD cents goal: #{config.c_get_config_uint("sale1:goal").to_s.colorize(:light_blue)}"
+puts "Crowdsale configured total DAO tokens for founders: #{config.c_get_config_uint("sale1:famount").to_s.colorize(:light_blue)}"
+puts "Crowdsale configured founder wallet: #{config.c_get_config_address("sale1:fwallet").colorize(:light_green)}"
+puts "Crowdsale configured Ether Payout Wallet (DAO): #{config.c_get_config_address("sale1:dao").colorize(:light_green)}"
 
 token_sales = TokenSales.new
 token_sales.as(coinbase)
 token_sales.set_gas(3000000)
 token_sales.set_gas_price(gas_price)
 token_sales.deploy_and_wait(120, config.address)
+puts "Deploying Token Sales".colorize(:light_magenta)
 config.tw_set_config_address("sale1:address", token_sales.address)
-puts "Crowdsale configured token sale contract: #{config.c_get_config_address("sale1:address")}"
-token_sales.tw_set_eth_to_cents(1180)
+puts "Crowdsale configured token sale contract: #{config.c_get_config_address("sale1:address").colorize(:light_green)}"
+puts "Setting default ETH price".colorize(:light_magenta)
+token_sales.tw_set_eth_to_cents(1070)
 token_ledger = Token.new
 token_ledger.as(coinbase)
 token_ledger.set_gas(3000000)
 token_ledger.set_gas_price(gas_price)
+puts "Deploying Token Ledger".colorize(:light_magenta)
 token_ledger.deploy_and_wait(120, config.address)
 config.tw_set_config_address("ledger", token_ledger.address)
-puts "Crowdsale configured ledger contract: #{config.c_get_config_address("ledger")}"
+puts "Crowdsale configured ledger contract: #{config.c_get_config_address("ledger").colorize(:light_green)}"
 
 build_dir = File.join(ENV['PWD'], "build", environment)
 FileUtils.rm_rf(build_dir) if Dir.exists?(build_dir)
@@ -92,6 +114,7 @@ def build_contract(contract_name, p, build_dir)
   bin_file.close
 end
 
+puts "Saving Configuration".colorize(:blue)
 build_contract("TokenSales", project, build_dir)
 build_contract("Config", project, build_dir)
 build_contract("Token", project, build_dir)
@@ -101,3 +124,6 @@ appconfig = {owner: coinbase, token_sales_address: token_sales.address, config_a
 File.open(File.join(build_dir, "app_config.json"), 'w') do |file|
   file.puts JSON.pretty_generate(appconfig)
 end
+
+rake_cmd = "rake copy_contracts"
+puts "Completed deployment.  Please be sure to run #{rake_cmd.colorize(:light_white)} in your application"

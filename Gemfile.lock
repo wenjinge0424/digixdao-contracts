@@ -8,16 +8,63 @@ GEM
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
     colorize (0.7.7)
+    equatable (0.5.0)
     ethereum (0.4.95)
       activesupport
       sha3-pure-ruby
     i18n (0.7.0)
     json (1.8.3)
     minitest (5.8.4)
+    necromancer (0.3.0)
+    pastel (0.6.0)
+      equatable (~> 0.5.0)
+      tty-color (~> 0.3.0)
     sha3-pure-ruby (0.1.1)
     thread_safe (0.3.5)
+    tty (0.4.0)
+      equatable (~> 0.5.0)
+      pastel (~> 0.6.0)
+      tty-color (~> 0.3.0)
+      tty-cursor (~> 0.2.0)
+      tty-pager (~> 0.4.0)
+      tty-platform (~> 0.1.0)
+      tty-progressbar (~> 0.8.0)
+      tty-prompt (~> 0.4.0)
+      tty-screen (~> 0.5.0)
+      tty-spinner (~> 0.1.0)
+      tty-table (~> 0.5.0)
+      tty-which (~> 0.1.0)
+    tty-color (0.3.0)
+    tty-cursor (0.2.0)
+    tty-pager (0.4.0)
+      tty-screen (~> 0.5.0)
+      tty-which (~> 0.1.0)
+      verse (~> 0.4.0)
+    tty-platform (0.1.0)
+    tty-progressbar (0.8.1)
+      tty-screen (~> 0.5.0)
+    tty-prompt (0.4.0)
+      necromancer (~> 0.3.0)
+      pastel (~> 0.6.0)
+      tty-cursor (~> 0.2.0)
+      tty-platform (~> 0.1.0)
+      wisper (~> 1.6.1)
+    tty-screen (0.5.0)
+    tty-spinner (0.1.0)
+    tty-table (0.5.0)
+      equatable (~> 0.5.0)
+      necromancer (~> 0.3.0)
+      pastel (~> 0.6.0)
+      tty-screen (~> 0.5.0)
+      unicode_utils (~> 1.4.0)
+      verse (~> 0.4.0)
+    tty-which (0.1.0)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
+    unicode_utils (1.4.0)
+    verse (0.4.0)
+      unicode_utils (~> 1.4.0)
+    wisper (1.6.1)
 
 PLATFORMS
   ruby
@@ -25,6 +72,7 @@ PLATFORMS
 DEPENDENCIES
   colorize
   ethereum
+  tty
 
 BUNDLED WITH
    1.11.2

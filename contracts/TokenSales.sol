@@ -210,7 +210,7 @@ contract TokenSales is TokenSalesInterface {
   }
 
   function isEnded() public constant returns (bool ended) {
-    return (now > endDate());
+    return (now >= endDate());
   }
   
   function sendFunds() public returns (bool success) {

@@ -231,7 +231,6 @@ contract TokenSalesInterface {
   /// @return `faddress` Founder wallet address
   function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents, uint256 amount, uint256 goal, uint256 famount, address faddress);
 
-
   function claimFor(address _user) returns (bool success); 
 
   /// @notice Allows msg.sender to claim the DGD tokens and badges if the goal is reached or refunds the ETH contributed if goal is not reached at the end of the crowdsale
