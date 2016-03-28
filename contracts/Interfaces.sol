@@ -193,6 +193,8 @@ contract TokenSalesInterface {
   /// @return The USD cents value
   function weiToCents(uint256 _wei) public constant returns (uint256 centsvalue);
 
+  function proxyPurchase(address _user) returns (bool success);
+
   /// @notice Send msg.value purchase for _user.  
   /// @param _user The account to be credited
   /// @return Success if purchase was accepted

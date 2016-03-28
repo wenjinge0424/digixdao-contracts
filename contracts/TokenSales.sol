@@ -48,6 +48,10 @@ contract TokenSales is TokenSalesInterface {
     if (!purchase(_sender, _amount)) throw;
   }
 
+  function proxyPurchase(address _user) returns (bool success) {
+    return purchase(_user, msg.value);
+  }
+
   function purchase(address _user, uint256 _amount) private returns (bool success) {
     uint256 _cents = weiToCents(_amount);
     uint256 _wei = _amount;

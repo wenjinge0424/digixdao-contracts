@@ -30,7 +30,7 @@ if environment == "staging"
 end
 
 if environment == "production"
-  coinbase = "0xf2b4bbb5e8c018fe27d71ac2577288f3f5a6a99d"
+  coinbase = "0x4366ddc115d8cf213c564da36e64c8ebaa30cdbd"
 end
 
 
@@ -44,10 +44,10 @@ config.set_gas_price(gas_price)
 puts "Deploying Configuration".colorize(:light_magenta)
 config.deploy_and_wait(120)
 
-period_one = (DateTime.now.utc + 20.minutes).to_i
-period_two = (period_one + 15.minutes).to_i
-period_three = (period_two + 15.minutes).to_i
-end_date = (period_three + 15.minutes).to_i
+period_one = (DateTime.now.utc + 1.hour).to_i
+period_two = (period_one + 2.hours).to_i
+period_three = (period_two + 2.hours).to_i
+end_date = (period_three + 2.hours).to_i
 
 bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 20)
 puts "Setting Configurations".colorize(:light_magenta)
