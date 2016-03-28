@@ -42,9 +42,9 @@ puts "Deploying Configuration".colorize(:light_magenta)
 config.deploy_and_wait(120)
 
 period_one = (DateTime.now.utc + 12.minutes).to_i
-period_two = (period_one + 1.hours).to_i
-period_three = (period_two + 1.hours).to_i
-end_date = (period_three + 1.hours).to_i
+period_two = (period_one + 15.minutes).to_i
+period_three = (period_two + 15.minutes).to_i
+end_date = (period_three + 15.minutes).to_i
 
 bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 20)
 puts "Setting Configurations".colorize(:light_magenta)
