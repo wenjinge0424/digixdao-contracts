@@ -1,5 +1,26 @@
 import "./Interfaces.sol";
 
+contract ProxyPayment {
+
+  address payout;
+  address tokenSales; 
+  address owner;
+
+  function ProxyPayment(address _payout, address _tokenSales) {
+    payout = _payout;
+    tokenSales = _tokenSales;
+    owner = _payout;
+  }
+
+  function () {
+    if (!TokenSalesInterface(tokenSales).proxyPurchase.value(msg.value).gas(106000)(payout)) throw;
+  }
+
+  function destroy() {
+    selfdestruct(owner);
+  }
+}
+
 // DigixDAO Crowdsale Round 1
 // https://sale.digix.io
 
@@ -15,6 +36,8 @@ contract TokenSales is TokenSalesInterface {
     _
   }
 
+
+  mapping (address => address) proxyPayouts;
   uint256 public WEI_PER_ETH = 1000000000000000000;
   uint256 public BILLION = 1000000000;
 
@@ -225,13 +248,20 @@ contract TokenSales is TokenSalesInterface {
     return _dao.send(totalWei());
   }
 
-  function regProxy(address _payment, address _payout) ifOOrigin returns (bool success) {
-    proxies[_payment].payout = _payout;
-    proxies[_payment].isProxy = true;
+  //function regProxy(address _payment, address _payout) ifOOrigin returns (bool success) {
+  function regProxy(address _payout) ifOOrigin returns (bool success) {
+    address _proxy = new ProxyPayment(_payout, address(this));
+    proxies[_proxy].payout = _payout;
+    proxies[_proxy].isProxy = true;
+    proxyPayouts[_payout] = _proxy;
     return true;
   }
+  
+  function getProxy(address _payout) public returns (address proxy) {
+    return proxyPayouts[_payout];
+  }
 
-  function getProxy(address _proxy) public returns (address payout, bool isproxy) {
+  function getPayout(address _proxy) public returns (address payout, bool isproxy) {
     return (proxies[_proxy].payout, proxies[_proxy].isProxy);
   }
 }

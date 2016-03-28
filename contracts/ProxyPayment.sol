@@ -1,18 +1,26 @@
-import "./Interfaces.sol";
+/*import "./Interfaces.sol";*/
 
-contract ProxyPayment {
+/*contract ProxyPayment {*/
 
-  address payout;
-  address tokenSales; 
-  address owner;
+  /*address payout;*/
+  /*address tokenSales; */
+  /*address owner;*/
 
-  function ProxyPayment(address _payout, address _tokenSales) {
-    if (!TokenSalesInterface(_tokenSales).regProxy(address(this), _payout)) throw;
-    payout = _payout;
-    tokenSales = _tokenSales;
-  }
+  /*function ProxyPayment(address _payout, address _tokenSales) {*/
+    /*payout = _payout;*/
+    /*tokenSales = _tokenSales;*/
+    /*owner = _payout;*/
+  /*}*/
 
-  function () {
-    if (!TokenSalesInterface(tokenSales).proxyPurchase.value(msg.value)(address(this))) throw;
-  }
-}
+  /*function register() {*/
+    /*if (!TokenSalesInterface(tokenSales).regProxy(payout)) throw;*/
+  /*}*/
+
+  /*function () {*/
+    /*if (!TokenSalesInterface(tokenSales).proxyPurchase.value(msg.value).gas(106000)(address(this))) throw;*/
+  /*}*/
+
+  /*function destroy() {*/
+    /*selfdestruct(owner);*/
+  /*}*/
+/*}*/

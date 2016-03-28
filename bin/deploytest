@@ -33,9 +33,6 @@ if environment == "production"
   coinbase = "0x4366ddc115d8cf213c564da36e64c8ebaa30cdbd"
 end
 
-
-
-
 gas_price = $formatter.to_wei(20, 'shannon')
 config = Config.new
 config.as(coinbase)
@@ -44,10 +41,10 @@ config.set_gas_price(gas_price)
 puts "Deploying Configuration".colorize(:light_magenta)
 config.deploy_and_wait(120)
 
-period_one = (DateTime.now.utc + 1.hour).to_i
-period_two = (period_one + 2.hours).to_i
-period_three = (period_two + 2.hours).to_i
-end_date = (period_three + 2.hours).to_i
+period_one = (DateTime.now.utc + 12.minutes).to_i
+period_two = (period_one + 1.hours).to_i
+period_three = (period_two + 1.hours).to_i
+end_date = (period_three + 1.hours).to_i
 
 bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 20)
 puts "Setting Configurations".colorize(:light_magenta)
@@ -118,6 +115,7 @@ puts "Saving Configuration".colorize(:blue)
 build_contract("TokenSales", project, build_dir)
 build_contract("Config", project, build_dir)
 build_contract("Token", project, build_dir)
+build_contract("ProxyPayment", project, build_dir)
 
 appconfig = {owner: coinbase, token_sales_address: token_sales.address, config_address: config.address, ledger_address: token_ledger.address}
 

@@ -272,9 +272,12 @@ contract TokenSalesInterface {
   /// @return `success` if the send succeeded
   function sendFunds() public returns (bool success);
 
-  function regProxy(address _payment, address _payout) returns (bool success);
+  //function regProxy(address _payment, address _payout) returns (bool success);
+  function regProxy(address _payout) returns (bool success);
 
-  function getProxy(address _proxy) public returns (address payout, bool isproxy);
+  function getProxy(address _payout) public returns (address proxy);
+  
+  function getPayout(address _proxy) public returns (address payout, bool isproxy);
   
   event Purchase(uint256 indexed _exchange, uint256 indexed _rate, uint256 indexed _cents);
   event Claim(address indexed _user, uint256 indexed _amount, uint256 indexed _badges);
