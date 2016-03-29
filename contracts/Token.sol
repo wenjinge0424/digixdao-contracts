@@ -55,11 +55,10 @@ contract Token is TokenInterface {
       users[msg.sender].badges -= _value;
       users[_to].badges += _value;
       Transfer(msg.sender, _to, _value);
-      success = true;
+      return true;
     } else {
-      success = false;
+      return false;
     }
-    return success;
   }
 
   function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {
@@ -68,11 +67,10 @@ contract Token is TokenInterface {
       users[_from].balance -= _value;
       allowed[_from][msg.sender] -= _value;
       Transfer(_from, _to, _value);
-      success = true;
+      return true;
     } else {
-      success = false;
+      return false;
     }
-    return success;
   }
 
   function approve(address _spender, uint256 _value) returns (bool success) {
