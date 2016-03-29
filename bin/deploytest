@@ -48,8 +48,6 @@ end_date = (period_three + 15.minutes).to_i
 
 bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 20)
 puts "Setting Configurations".colorize(:light_magenta)
-config.tw_set_config_uint("sale1:cap", 5_500_000)
-2.times { bar.advance }
 config.tw_set_config_uint("sale1:period1", period_one)
 2.times { bar.advance }
 config.tw_set_config_uint("sale1:period2", period_two)
@@ -68,13 +66,16 @@ config.tw_set_config_address("sale1:fwallet", coinbase)
 2.times { bar.advance }
 config.tw_set_config_address("sale1:dao", coinbase)
 2.times { bar.advance }
+config.tw_set_config_uint("sale1:cap", 5_500_000)
+2.times { bar.advance }
 
 puts "Crowdsale configured start: #{config.c_get_config_uint("sale1:period1").to_s.colorize(:light_blue)}"
 puts "Crowdsale configured period 2: #{config.c_get_config_uint("sale1:period2").to_s.colorize(:light_blue)}"
 puts "Crowdsale configured period 3: #{config.c_get_config_uint("sale1:period3").to_s.colorize(:light_blue)}"
 puts "Crowdsale configured end: #{config.c_get_config_uint("sale1:end").to_s.colorize(:light_blue)}"
 puts "Crowdsale configured total DAO tokens: #{config.c_get_config_uint("sale1:amount").to_s.colorize(:light_blue)}"
-puts "Crowdsale configured USD cents goal: #{config.c_get_config_uint("sale1:goal").to_s.colorize(:light_blue)}"
+puts "Crowdsale configured USD goal: #{config.c_get_config_uint("sale1:goal").to_s.colorize(:light_blue)}"
+puts "Crowdsale configured USD cap: #{config.c_get_config_uint("sale1:cap").to_s.colorize(:light_blue)}"
 puts "Crowdsale configured total DAO tokens for founders: #{config.c_get_config_uint("sale1:famount").to_s.colorize(:light_blue)}"
 puts "Crowdsale configured founder wallet: #{config.c_get_config_address("sale1:fwallet").colorize(:light_green)}"
 puts "Crowdsale configured Ether Payout Wallet (DAO): #{config.c_get_config_address("sale1:dao").colorize(:light_green)}"

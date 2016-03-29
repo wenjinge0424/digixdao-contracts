@@ -60,6 +60,7 @@ contract ConfigInterface {
   /// @param _admin The key name of the configuration.
   /// @return Whether the configuration setting was successful or not.  
   function removeAdmin(address _admin) returns (bool success);
+
 }
 
 contract TokenInterface {
@@ -78,6 +79,8 @@ contract TokenInterface {
 
   address config;
   address owner;
+  address dao;
+  bool locked;
 
   /// @return total amount of tokens
   uint256 public totalSupply;
@@ -132,6 +135,10 @@ contract TokenInterface {
   /// @param _amount The amount of tokens to mint
   /// @return Whether or not minting was successful
   function mintBadge(address _owner, uint256 _amount) returns (bool success);
+
+  function registerDao(address _dao) returns (bool success);
+
+  function registerSeller(address _tokensales) returns (bool success);
 
   event Transfer(address indexed _from, address indexed _to, uint256 _value);
   event SendBadge(address indexed _from, address indexed _to, uint256 _amount);

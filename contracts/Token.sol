@@ -12,11 +12,22 @@ contract Token is TokenInterface {
     _ 
   }
 
+  modifier ifOwner() {
+    if (msg.sender != owner) throw;
+    _
+  }
+
+  modifier ifDao() {
+    if (msg.sender != dao) throw;
+    _
+  }
+
   function Token(address _config) {
     config = _config;
     owner = msg.sender;
     address _initseller = ConfigInterface(_config).getConfigAddress("sale1:address");
     seller[_initseller] = true; 
+    locked = false;
   }
 
   function balanceOf(address _owner) constant returns (uint256 balance) {
@@ -84,5 +95,16 @@ contract Token is TokenInterface {
     totalBadges += _amount;
     users[_owner].badges += _amount;
     return true;
+  }
+
+  function registerDao(address _dao) ifOwner returns (bool success) {
+    if (locked == true) return false;
+    dao = _dao;
+    locked = true;
+    return true;
+  }
+
+  function registerSeller(address _tokensales) ifDao returns (bool success) {
+    seller[_tokensales] = true;
   }
 }
