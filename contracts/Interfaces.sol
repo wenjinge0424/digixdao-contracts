@@ -145,18 +145,29 @@ contract TokenSalesInterface {
     bool isProxy;
   }
 
+  struct SaleStatus {
+    bool founderClaim;
+    uint256 releasedTokens;
+    uint256 releasedBadges;
+    uint256 claimers;
+  }
+
   struct Info {
+    uint256 totalWei;
+    uint256 totalCents;
+    uint256 realCents;
+    uint256 amount;
+  }
+
+  struct SaleConfig {
     uint256 startDate;
     uint256 periodTwo;
     uint256 periodThree;
     uint256 endDate;
-    uint256 totalWei;
-    uint256 totalCents;
-    uint256 amount;
     uint256 goal;
+    uint256 cap;
     uint256 founderAmount;
     address founderWallet;
-    bool founderClaim;
   }
 
   struct Buyer {
@@ -166,9 +177,12 @@ contract TokenSalesInterface {
   }
 
   Info saleInfo;
+  SaleConfig saleConfig;
+  SaleStatus saleStatus;
 
   address config;
   address owner;
+  bool locked;
 
   uint256 public ethToCents;
 
@@ -231,7 +245,7 @@ contract TokenSalesInterface {
   /// @return `goal` The USD value goal for the crowdsale
   /// @return `famount` Founders endowment
   /// @return `faddress` Founder wallet address
-  function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents, uint256 amount, uint256 goal, uint256 famount, address faddress);
+  /*function getSaleInfo() public constant returns (uint256 startsale, uint256 two, uint256 three, uint256 endsale, uint256 totalwei, uint256 totalcents, uint256 amount, uint256 goal, uint256 famount, address faddress);*/
 
   function claimFor(address _user) returns (bool success); 
 
@@ -278,18 +292,20 @@ contract TokenSalesInterface {
   function getProxy(address _payout) public returns (address proxy);
   
   function getPayout(address _proxy) public returns (address payout, bool isproxy);
+
+  function unlock() public returns (bool success);
+
+  function getSaleStatus() public constant returns (bool fclaim, uint256 reltokens, uint256 relbadges, uint256 claimers);
+
+  function getSaleInfo() public constant returns (uint256 weiamount, uint256 cents, uint256 realcents, uint256 amount);
+
+  function getSaleConfig() public constant returns (uint256 start, uint256 two, uint256 three, uint256 end, uint256 goal, uint256 cap, uint256 famount, address fwallet);
   
   event Purchase(uint256 indexed _exchange, uint256 indexed _rate, uint256 indexed _cents);
   event Claim(address indexed _user, uint256 indexed _amount, uint256 indexed _badges);
 
 }
 
-contract DAOInterface {
-  // WIP
-}
 
-contract ProposalInterface {
-  // WIP
-}
 
 

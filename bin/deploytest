@@ -48,6 +48,7 @@ end_date = (period_three + 15.minutes).to_i
 
 bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 20)
 puts "Setting Configurations".colorize(:light_magenta)
+config.tw_set_config_uint("sale1:cap", 5_500_000)
 2.times { bar.advance }
 config.tw_set_config_uint("sale1:period1", period_one)
 2.times { bar.advance }
@@ -59,7 +60,7 @@ config.tw_set_config_uint("sale1:end", end_date)
 2.times { bar.advance }
 config.tw_set_config_uint("sale1:amount", 1_700_000)
 2.times { bar.advance }
-config.tw_set_config_uint("sale1:goal", 10000)
+config.tw_set_config_uint("sale1:goal", 500000)
 2.times { bar.advance }
 config.tw_set_config_uint("sale1:famount", 300_000)
 2.times { bar.advance }
