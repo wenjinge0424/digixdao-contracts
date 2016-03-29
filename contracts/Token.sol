@@ -106,5 +106,6 @@ contract Token is TokenInterface {
 
   function registerSeller(address _tokensales) ifDao returns (bool success) {
     seller[_tokensales] = true;
+    return true;
   }
 }

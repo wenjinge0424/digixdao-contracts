@@ -41,10 +41,10 @@ config.set_gas_price(gas_price)
 puts "Deploying Configuration".colorize(:light_magenta)
 config.deploy_and_wait(120)
 
-period_one = (DateTime.now.utc + 12.minutes).to_i
-period_two = (period_one + 15.minutes).to_i
-period_three = (period_two + 15.minutes).to_i
-end_date = (period_three + 15.minutes).to_i
+period_one = (DateTime.now.utc + 10.minutes).to_i
+period_two = (period_one + 7.minutes).to_i
+period_three = (period_two + 7.minutes).to_i
+end_date = (period_three + 7.minutes).to_i
 
 bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 20)
 puts "Setting Configurations".colorize(:light_magenta)
@@ -58,7 +58,7 @@ config.tw_set_config_uint("sale1:end", end_date)
 2.times { bar.advance }
 config.tw_set_config_uint("sale1:amount", 1_700_000)
 2.times { bar.advance }
-config.tw_set_config_uint("sale1:goal", 500000)
+config.tw_set_config_uint("sale1:goal", 100)
 2.times { bar.advance }
 config.tw_set_config_uint("sale1:famount", 300_000)
 2.times { bar.advance }
