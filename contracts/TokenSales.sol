@@ -51,6 +51,7 @@ contract TokenSales is TokenSalesInterface {
     saleConfig.founderWallet = ConfigInterface(_config).getConfigAddress("sale1:fwallet");
     saleConfig.goal = ConfigInterface(_config).getConfigUint("sale1:goal") * CENTS;
     saleConfig.cap = ConfigInterface(_config).getConfigUint("sale1:cap") * CENTS;
+    saleConfig.badgeCost = ConfigInterface(_config).getConfigUint("sale1:badgecost") * CENTS;
     saleInfo.amount = ConfigInterface(_config).getConfigUint("sale1:amount") * BILLION;
     saleInfo.totalWei = 0;
     saleInfo.totalCents = 0;
@@ -131,8 +132,8 @@ contract TokenSales is TokenSalesInterface {
   }
 
 
-  function getSaleConfig() public constant returns (uint256 start, uint256 two, uint256 three, uint256 end, uint256 goal, uint256 cap, uint256 famount, address fwallet) {
-    return (saleConfig.startDate, saleConfig.periodTwo, saleConfig.periodThree, saleConfig.endDate, saleConfig.goal, saleConfig.cap, saleConfig.founderAmount, saleConfig.founderWallet);
+  function getSaleConfig() public constant returns (uint256 start, uint256 two, uint256 three, uint256 end, uint256 goal, uint256 cap, uint256 badgecost, uint256 famount, address fwallet) {
+    return (saleConfig.startDate, saleConfig.periodTwo, saleConfig.periodThree, saleConfig.endDate, saleConfig.goal, saleConfig.cap, saleConfig.badgeCost, saleConfig.founderAmount, saleConfig.founderWallet);
   }
 
   function goalReached() public constant returns (bool reached) {
@@ -158,7 +159,7 @@ contract TokenSales is TokenSalesInterface {
     if (goalReached()) {
       address _tokenc = ConfigInterface(config).getConfigAddress("ledger");
       uint256 _tokens = calcShare(buyers[_user].centsTotal, saleInfo.totalCents); 
-      uint256 _badges = buyers[_user].centsTotal / 1500000;
+      uint256 _badges = buyers[_user].centsTotal / saleConfig.badgeCost;
       if ((TokenInterface(_tokenc).mint(msg.sender, _tokens)) && (TokenInterface(_tokenc).mintBadge(_user, _badges))) {
         saleStatus.releasedTokens += _tokens;
         saleStatus.releasedBadges += _badges;
@@ -214,7 +215,7 @@ contract TokenSales is TokenSalesInterface {
 
   function userInfo(address _user) public constant returns (uint256 centstotal, uint256 weitotal, uint256 share, uint badges, bool claimed) {
     share = calcShare(buyers[_user].centsTotal, saleInfo.totalCents);
-    badges = buyers[_user].centsTotal / 1500000;
+    badges = buyers[_user].centsTotal / saleConfig.badgeCost;
     return (buyers[_user].centsTotal, buyers[_user].weiTotal, share, badges, buyers[_user].claimed);
   }
 

@@ -41,12 +41,29 @@ config.set_gas_price(gas_price)
 puts "Deploying Configuration".colorize(:light_magenta)
 config.deploy_and_wait(120)
 
-period_one = (DateTime.now.utc + 10.minutes).to_i
-period_two = (period_one + 7.minutes).to_i
-period_three = (period_two + 7.minutes).to_i
-end_date = (period_three + 7.minutes).to_i
+if environment == "production"
+  march_thirty =  DateTime.parse("March 30, 2016 00:00 GMT")
+  period_one = (march_thirty).to_i
+  period_two = (period_one + 8.days).to_i
+  period_three = (period_two + 8.days).to_i
+  end_date = (period_three + 14.days).to_i
+  goal = 500000
+  badge_cost = 15000
+else
+  period_one = (DateTime.now.utc + 10.minutes).to_i
+  period_two = (period_one + 7.minutes).to_i
+  period_three = (period_two + 7.minutes).to_i
+  end_date = (period_three + 7.minutes).to_i
+  goal = 100
+  badge_cost = 15
+end
 
-bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 20)
+sale_amount = 1700000
+founders_amount = 300000
+cap = 5500000
+
+
+bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 22)
 puts "Setting Configurations".colorize(:light_magenta)
 config.tw_set_config_uint("sale1:period1", period_one)
 2.times { bar.advance }
@@ -56,17 +73,19 @@ config.tw_set_config_uint("sale1:period3", period_three)
 2.times { bar.advance }
 config.tw_set_config_uint("sale1:end", end_date)
 2.times { bar.advance }
-config.tw_set_config_uint("sale1:amount", 1_700_000)
+config.tw_set_config_uint("sale1:amount", sale_amount)
 2.times { bar.advance }
-config.tw_set_config_uint("sale1:goal", 100)
+config.tw_set_config_uint("sale1:goal", goal)
 2.times { bar.advance }
-config.tw_set_config_uint("sale1:famount", 300_000)
+config.tw_set_config_uint("sale1:famount", founders_amount)
 2.times { bar.advance }
 config.tw_set_config_address("sale1:fwallet", coinbase)
 2.times { bar.advance }
 config.tw_set_config_address("sale1:dao", coinbase)
 2.times { bar.advance }
-config.tw_set_config_uint("sale1:cap", 5_500_000)
+config.tw_set_config_uint("sale1:cap", cap)
+2.times { bar.advance }
+config.tw_set_config_uint("sale1:badgecost", badge_cost)
 2.times { bar.advance }
 
 puts "Crowdsale configured start: #{config.c_get_config_uint("sale1:period1").to_s.colorize(:light_blue)}"
@@ -79,6 +98,7 @@ puts "Crowdsale configured USD cap: #{config.c_get_config_uint("sale1:cap").to_s
 puts "Crowdsale configured total DAO tokens for founders: #{config.c_get_config_uint("sale1:famount").to_s.colorize(:light_blue)}"
 puts "Crowdsale configured founder wallet: #{config.c_get_config_address("sale1:fwallet").colorize(:light_green)}"
 puts "Crowdsale configured Ether Payout Wallet (DAO): #{config.c_get_config_address("sale1:dao").colorize(:light_green)}"
+puts "Crowdsale configured Proposer Badge Cost: #{config.c_get_config_uint("sale1:badgecost").to_s.colorize(:light_green)}"
 
 token_sales = TokenSales.new
 token_sales.as(coinbase)
@@ -89,7 +109,7 @@ puts "Deploying Token Sales".colorize(:light_magenta)
 config.tw_set_config_address("sale1:address", token_sales.address)
 puts "Crowdsale configured token sale contract: #{config.c_get_config_address("sale1:address").colorize(:light_green)}"
 puts "Setting default ETH price".colorize(:light_magenta)
-token_sales.tw_set_eth_to_cents(1070)
+token_sales.tw_set_eth_to_cents(1149)
 token_ledger = Token.new
 token_ledger.as(coinbase)
 token_ledger.set_gas(3000000)

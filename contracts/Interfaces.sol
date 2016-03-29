@@ -173,6 +173,7 @@ contract TokenSalesInterface {
     uint256 endDate;
     uint256 goal;
     uint256 cap;
+    uint256 badgeCost;
     uint256 founderAmount;
     address founderWallet;
   }
@@ -306,7 +307,7 @@ contract TokenSalesInterface {
 
   function getSaleInfo() public constant returns (uint256 weiamount, uint256 cents, uint256 realcents, uint256 amount);
 
-  function getSaleConfig() public constant returns (uint256 start, uint256 two, uint256 three, uint256 end, uint256 goal, uint256 cap, uint256 famount, address fwallet);
+  function getSaleConfig() public constant returns (uint256 start, uint256 two, uint256 three, uint256 end, uint256 goal, uint256 cap, uint256 badgecost, uint256 famount, address fwallet);
   
   event Purchase(uint256 indexed _exchange, uint256 indexed _rate, uint256 indexed _cents);
   event Claim(address indexed _user, uint256 indexed _amount, uint256 indexed _badges);
