@@ -47,20 +47,21 @@ if environment == "production"
   period_two = (period_one + 8.days).to_i
   period_three = (period_two + 8.days).to_i
   end_date = (period_three + 14.days).to_i
-  goal = 500000
-  badge_cost = 15000
+  goal = 500_000
+  badge_cost = 15_000
+  cap = 5_500_000
 else
-  period_one = (DateTime.now.utc + 10.minutes).to_i
-  period_two = (period_one + 7.minutes).to_i
-  period_three = (period_two + 7.minutes).to_i
-  end_date = (period_three + 7.minutes).to_i
+  period_one = (DateTime.now.utc + 30.minutes).to_i
+  period_two = (period_one + 15.minutes).to_i
+  period_three = (period_two + 15.minutes).to_i
+  end_date = (period_three + 15.minutes).to_i
   goal = 100
   badge_cost = 15
+  cap = 1000
 end
 
-sale_amount = 1700000
-founders_amount = 300000
-cap = 5500000
+sale_amount = 1_700_000
+founders_amount = 300_000
 
 
 bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 22)
