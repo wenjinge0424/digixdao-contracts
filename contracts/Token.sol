@@ -7,7 +7,6 @@ contract Badge  {
 
   address config;
   address owner;
-  address dao;
   bool locked;
 
   /// @return total amount of tokens
