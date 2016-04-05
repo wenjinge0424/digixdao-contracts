@@ -8,7 +8,7 @@ case $1 in
   start)
     echo "Starting testnet node"
     #$GETH --genesis ./testnet/genesis.json --datadir ./testnet --minerthreads 1 --mine --vmdebug --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 js unlock.js 2>> /tmp/digix_testnet.out
-    $GETH --genesis ./testnet/genesis.json --datadir ./testnet --minerthreads 1 --mine --vmdebug --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 console 2>> /tmp/digix_testnet.out
+    $GETH --genesis ./testnet/genesis.json --nat "none" --datadir ./testnet --minerthreads 1 --mine --vmdebug --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 console 2>> /tmp/digix_testnet.out
     ;;
   attach)
     echo "Attaching to console"
