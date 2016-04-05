@@ -5,7 +5,6 @@ contract Badge  {
   mapping (address => mapping (address => uint256)) allowed;
   mapping (address => bool) seller;
 
-  address config;
   address owner;
   bool locked;
 
@@ -22,7 +21,6 @@ contract Badge  {
   event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 
   function Badge(address _config) {
-    config = _config;
     owner = msg.sender;
   }
 
