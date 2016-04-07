@@ -52,10 +52,10 @@ if environment == "production"
   badge_cost = 15_000
   cap = 5_500_000
 else
-  period_one = (DateTime.now.utc + 1.minutes).to_i
-  period_two = (period_one + 1.minutes).to_i
-  period_three = (period_two + 1.minutes).to_i
-  end_date = (period_three + 1.minutes).to_i
+  period_one = (DateTime.now.utc + 2.minutes).to_i
+  period_two = (period_one + 2.minutes).to_i
+  period_three = (period_two + 2.minutes).to_i
+  end_date = (period_three + 2.minutes).to_i
   goal = 500_000
   badge_cost = 15_000
   cap = 5_500_000
@@ -64,7 +64,7 @@ end
 sale_amount = 1_700_000
 founders_amount = 300_000
 
-bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 28)
+bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 30)
 puts "Setting Configurations".colorize(:light_magenta)
 config.tw_set_config_uint("sale1:period1", period_one)
 2.times { bar.advance }
@@ -94,6 +94,18 @@ config.tw_set_config_uint("pledges:minimum", 20)
 config.tw_set_config_uint("votes:minimum", 100_000)
 2.times { bar.advance }
 config.tw_set_config_address("provider:address", coinbase)
+2.times { bar.advance }
+if environment == "production"
+  deploy_environment = "mainnet"
+end
+if environment == "development"
+  deploy_environment = "testnet"
+end
+if environment == "staging"
+  deploy_environment = "morden"
+end
+
+config.tw_set_config_bytes("environment", deploy_environment)
 2.times { bar.advance }
 
 puts "Crowdsale configured start: #{config.c_get_config_uint("sale1:period1").to_s.colorize(:light_blue)}"
@@ -182,10 +194,14 @@ if environment == "development"
     end
     sleep 5
   end
+  while (!token_sales.c_is_ended)
+    sleep 5
+  end
   buyers.each do |buyer|
     token_sales.t_claim_for(buyer)
   end
 end
+
 token_sales.as(coinbase)
 config.tw_set_config_address("sale1:dao", dao.address)
 token_sales.tw_unlock

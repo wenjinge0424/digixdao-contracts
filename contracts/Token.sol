@@ -16,9 +16,9 @@ contract Badge  {
     _
   }
 
-  event Transfer(address indexed _from, address indexed _to, uint256 _value);
+  event Transfer(address indexed _from, address indexed _to, uint256 indexed _value);
   event Mint(address indexed _recipient, uint256 indexed _amount);
-  event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+  event Approval(address indexed _owner, address indexed _spender, uint256 indexed _value);
 
   function Badge(address _config) {
     owner = msg.sender;
@@ -53,13 +53,25 @@ contract Badge  {
   }
 
   function approve(address _spender, uint256 _value) returns (bool success) {
-    allowed[msg.sender][_spender] = _value;
-    Approval(msg.sender, _spender, _value);
-    return true;
+    if (balances[msg.sender] < _value) {
+      success = false;
+    } else {
+      allowed[msg.sender][_spender] = _value;
+      Approval(msg.sender, _spender, _value);
+      success = true;
+    }
+    return success;
   }
 
   function allowance(address _owner, address _spender) constant returns (uint256 remaining) {
-    return allowed[_owner][_spender];
+    uint256 _allowance = allowed[_owner][_spender];
+    uint256 _balance = balances[_owner];
+    if (_allowance > _balance) {
+      remaining = _balance;
+    } else {
+      remaining = _allowance;
+    }
+    return remaining;
   }
 
   function mint(address _owner, uint256 _amount) ifOwner returns (bool success) {
@@ -131,15 +143,26 @@ contract Token is TokenInterface {
   }
 
   function approve(address _spender, uint256 _value) returns (bool success) {
-    allowed[msg.sender][_spender] = _value;
-    Approval(msg.sender, _spender, _value);
-    return true;
+    if (balances[msg.sender] < _value) {
+      success = false;
+    } else {
+      allowed[msg.sender][_spender] = _value;
+      Approval(msg.sender, _spender, _value);
+      success = true;
+    }
+    return success;
   }
 
   function allowance(address _owner, address _spender) constant returns (uint256 remaining) {
-    return allowed[_owner][_spender];
+    uint256 _allowance = allowed[_owner][_spender];
+    uint256 _balance = balances[_owner];
+    if (_allowance > _balance) {
+      remaining = _balance;
+    } else {
+      remaining =  _allowance;
+    }
+    return remaining;
   }
-
   function mint(address _owner, uint256 _amount) ifSales returns (bool success) {
     totalSupply += _amount;
     balances[_owner] += _amount;

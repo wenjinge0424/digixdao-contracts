@@ -19,7 +19,7 @@ contract Proposal {
     uint256 totalDeclines;
   }
 
-  enum Status { New, Pledging, Pledged, Voting, Completed }
+  enum Status { Pledging, Voting, Completed }
 
   address public proposer;
   address public provider;
@@ -30,15 +30,29 @@ contract Proposal {
   PledgeData pledgeData;
   VoteData voteData;
   uint8 public status;
+  bytes32 public environment;
 
   event Pledge(address indexed _pledger, uint256 indexed _amount, bool indexed _approve);
   event Vote(address indexed _pledger, uint256 indexed _amount, bool indexed _approve);
 
-  function Proposal(address _config) {
+  function Proposal(address _config, address _badgeledger, address _tokenledger, bytes32 environment) {
     proposer = tx.origin;
+    badgeLedger = _badgeledger;
+    tokenLedger = _tokenledger;
     minPledges = ConfigInterface(_config).getConfigUint("pledges:minimum");
     minVotes = ConfigInterface(_config).getConfigUint("votes:minimum") * 1000000000;
     provider = ConfigInterface(_config).getConfigAddress("provider:address");
+    pledgeData.totalApproves = 0;
+    pledgeData.totalDeclines = 0;
+    voteData.totalApproves = 0;
+    voteData.totalDeclines = 0;
+    pledgeData.startDate = now;
+    environment = environment;
+    if (environment == "mainnet") pledgeData.endDate = now + 1 weeks;
+    if (environment == "testnet") pledgeData.endDate = now + 5 minutes;
+    if (environment == "morden") pledgeData.endDate = now + 1 days;
+    status = uint8(Status.Pledging);
+    environment = environment;
   }
 
   function pledgeApprove() returns (bool success) {
@@ -51,19 +65,19 @@ contract Proposal {
 
   function pledge(bool _pledge) returns (bool success) {
     uint256 _allowance = Badge(badgeLedger).allowance(msg.sender, address(this));
-    if (_allowance <= 0) return false;
+    if (_allowance == 0) return false;
     if (!Badge(badgeLedger).transferFrom(msg.sender, address(this), _allowance)) return false;
     if (_pledge == true) pledgeData.totalApproves += _allowance;
-    if (_pledge == false)  pledgeData.totalDeclines += _allowance;
+    if (_pledge == false) pledgeData.totalDeclines += _allowance;
     pledgeData.balances[msg.sender] = _allowance;
     Pledge(msg.sender, _allowance, _pledge);
     return true;
   }
 
-  function getInfo() public constant returns (uint256 pstartdate, uint256 penddate, uint256 papproves, uint256 pdeclines, uint256 ptotals, uint256 vstartdate, uint256 venddate, uint256 vapproves, uint256 vdeclines, uint256 vtotals) {
+  function getInfo() public constant returns (uint8 istatus, uint256 pstartdate, uint256 penddate, uint256 papproves, uint256 pdeclines, uint256 ptotals, uint256 vstartdate, uint256 venddate, uint256 vapproves, uint256 vdeclines, uint256 vtotals) {
     (pstartdate, penddate, papproves, pdeclines, ptotals) = (pledgeData.startDate, pledgeData.endDate, pledgeData.totalApproves, pledgeData.totalDeclines, (pledgeData.totalApproves + pledgeData.totalDeclines));
     (vstartdate, venddate, vapproves, vdeclines, vtotals) = (voteData.startDate, voteData.endDate, voteData.totalApproves, voteData.totalDeclines, (voteData.totalApproves + voteData.totalDeclines));
-    return (pstartdate, penddate, papproves, pdeclines, ptotals, vstartdate, venddate, vapproves, vdeclines, vtotals);
+    return (status, pstartdate, penddate, papproves, pdeclines, ptotals, vstartdate, venddate, vapproves, vdeclines, vtotals);
   }
 
   function getUserInfo(address _user) public constant returns (uint256 pledgecount, uint256 votecount) {
@@ -119,6 +133,7 @@ contract Dao {
   mapping (address => ProposalData) proposals;
   mapping (uint256 => address) proposalIndex;
   uint256 public proposalsCount;
+  bytes32 public environment;
 
   event NewProposal(address indexed _proposal, bytes32 indexed _document, uint256 indexed _budget);
 
@@ -126,6 +141,7 @@ contract Dao {
     config = _config;
     owner = msg.sender;
     tokenLedger = ConfigInterface(config).getConfigAddress("ledger");
+    environment = ConfigInterface(config).getConfigBytes("environment");
     badgeLedger = Token(tokenLedger).badgeLedger();
     proposalsCount = 0;
   }
@@ -133,7 +149,7 @@ contract Dao {
   function propose(bytes32 _document, uint256 _weibudget) {
     if (Badge(badgeLedger).balanceOf(msg.sender) <= 0) throw;
     if (_weibudget > funds()) throw;
-    address _proposal = new Proposal(config);
+    address _proposal = new Proposal(config, badgeLedger, tokenLedger, environment);
     proposals[_proposal].budget = _weibudget;
     proposals[_proposal].document = _document;
     proposalsCount++;

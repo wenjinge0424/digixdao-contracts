@@ -121,9 +121,9 @@ contract TokenInterface {
   function registerDao(address _dao) returns (bool success);
   function registerSeller(address _tokensales) returns (bool success);
 
-  event Transfer(address indexed _from, address indexed _to, uint256 _value);
+  event Transfer(address indexed _from, address indexed _to, uint256 indexed _value);
   event Mint(address indexed _recipient, uint256 indexed _amount);
-  event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+  event Approval(address indexed _owner, address indexed _spender, uint256 indexed _value);
 }
 
 contract TokenSalesInterface {
