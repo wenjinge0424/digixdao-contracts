@@ -52,20 +52,19 @@ if environment == "production"
   badge_cost = 15_000
   cap = 5_500_000
 else
-  period_one = (DateTime.now.utc + 30.minutes).to_i
-  period_two = (period_one + 15.minutes).to_i
-  period_three = (period_two + 15.minutes).to_i
-  end_date = (period_three + 15.minutes).to_i
-  goal = 100
-  badge_cost = 15
-  cap = 1000
+  period_one = (DateTime.now.utc + 1.minutes).to_i
+  period_two = (period_one + 1.minutes).to_i
+  period_three = (period_two + 1.minutes).to_i
+  end_date = (period_three + 1.minutes).to_i
+  goal = 500_000
+  badge_cost = 15_000
+  cap = 5_500_000
 end
 
 sale_amount = 1_700_000
 founders_amount = 300_000
 
-
-bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 22)
+bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 26)
 puts "Setting Configurations".colorize(:light_magenta)
 config.tw_set_config_uint("sale1:period1", period_one)
 2.times { bar.advance }
@@ -89,6 +88,11 @@ config.tw_set_config_uint("sale1:cap", cap)
 2.times { bar.advance }
 config.tw_set_config_uint("sale1:badgecost", badge_cost)
 2.times { bar.advance }
+# Post Crowdsale Configs
+config.tw_set_config_uint("pledges:minimum", 20)
+2.times { bar.advance }
+config.tw_set_config_uint("votes:minimum", 100_000)
+2.times { bar.advance }
 
 puts "Crowdsale configured start: #{config.c_get_config_uint("sale1:period1").to_s.colorize(:light_blue)}"
 puts "Crowdsale configured period 2: #{config.c_get_config_uint("sale1:period2").to_s.colorize(:light_blue)}"
@@ -101,6 +105,8 @@ puts "Crowdsale configured total DAO tokens for founders: #{config.c_get_config_
 puts "Crowdsale configured founder wallet: #{config.c_get_config_address("sale1:fwallet").colorize(:light_green)}"
 puts "Crowdsale configured Ether Payout Wallet (DAO): #{config.c_get_config_address("sale1:dao").colorize(:light_green)}"
 puts "Crowdsale configured Proposer Badge Cost: #{config.c_get_config_uint("sale1:badgecost").to_s.colorize(:light_green)}"
+puts "Crowdsale configured Minimum Pledges: #{config.c_get_config_uint("pledges:minimum").to_s.colorize(:light_green)}"
+puts "Crowdsale configured Minimum Votes: #{config.c_get_config_uint("votes:minimum").to_s.colorize(:light_green)}"
 
 token_sales = TokenSales.new
 token_sales.as(coinbase)
@@ -120,11 +126,6 @@ puts "Deploying Token Ledger".colorize(:light_magenta)
 token_ledger.deploy_and_wait(120, config.address)
 config.tw_set_config_address("ledger", token_ledger.address)
 puts "Crowdsale configured ledger contract: #{config.c_get_config_address("ledger").colorize(:light_green)}"
-dao = Dao.new
-dao.as(coinbase)
-dao.set_gas(pi_million)
-dao.set_gas_price(gas_price)
-dao.deploy_and_wait(120, config.address)
 
 build_dir = File.join(ENV['PWD'], "build", environment)
 FileUtils.rm_rf(build_dir) if Dir.exists?(build_dir)
@@ -152,7 +153,37 @@ File.open(File.join(build_dir, "app_config.json"), 'w') do |file|
   file.puts JSON.pretty_generate(appconfig)
 end
 
+# DAO Deployment 
+dao = Dao.new
+dao.as(coinbase)
+dao.set_gas(pi_million)
+dao.set_gas_price(gas_price)
+dao.deploy_and_wait(120, config.address)
+
 rake_cmd = "rake copy_contracts"
 puts "Completed deployment.  Please be sure to run #{rake_cmd.colorize(:light_white)} in your application"
+
+if environment == "development"
+  accounts = $eth.accounts["result"]
+  buyers = accounts[1..20]
+  while token_sales.c_get_period == 0
+    puts "Sale period has not started"
+    sleep 5
+  end
+  while (token_sales.c_get_period != 0) && (!token_sales.c_goal_reached)
+    puts "Period #{token_sales.c_get_period} purchases:"
+    buyers.each do |buyer|
+      amount = "0x" + $f.to_wei([SecureRandom.random_number(99), SecureRandom.random_number(2000)].sample, 'ether').to_s(16)
+      puts "Ether Amount: #{$f.from_wei(amount.hex, 'ether')}"
+      puts "Wei Amount: #{amount.hex}"
+      $eth.send_transaction({from: buyer, to: token_sales.address, value: amount, gas: 200000, gasPrice: gas_price})
+    end
+    sleep 5
+  end
+end
+token_sales.as(coinbase)
+config.tw_set_config_address("sale1:dao", dao.address)
+token_sales.tw_unlock
+token_sales.tw_send_funds
 
 binding.pry
