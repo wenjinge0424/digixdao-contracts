@@ -35,7 +35,7 @@ contract Proposal {
   event Pledge(address indexed _pledger, uint256 indexed _amount, bool indexed _approve);
   event Vote(address indexed _pledger, uint256 indexed _amount, bool indexed _approve);
 
-  function Proposal(address _config, address _badgeledger, address _tokenledger, bytes32 environment) {
+  function Proposal(address _config, address _badgeledger, address _tokenledger, bytes32 _environment) {
     proposer = tx.origin;
     badgeLedger = _badgeledger;
     tokenLedger = _tokenledger;
@@ -47,9 +47,9 @@ contract Proposal {
     voteData.totalApproves = 0;
     voteData.totalDeclines = 0;
     pledgeData.startDate = now;
-    environment = environment;
+    environment = _environment;
     if (environment == "mainnet") pledgeData.endDate = now + 1 weeks;
-    if (environment == "testnet") pledgeData.endDate = now + 5 minutes;
+    if (environment == "testnet") pledgeData.endDate = now + 20 minutes;
     if (environment == "morden") pledgeData.endDate = now + 1 days;
     status = uint8(Status.Pledging);
     environment = environment;
