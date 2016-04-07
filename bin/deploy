@@ -170,7 +170,7 @@ if environment == "development"
     puts "Sale period has not started"
     sleep 5
   end
-  while (token_sales.c_get_period != 0) && (!token_sales.c_goal_reached)
+  while (token_sales.c_get_period != 0) && ((token_sales.c_get_sale_info[2] / 100.00) < 5_100_000) && (!token_sales.c_is_ended)
     puts "Period #{token_sales.c_get_period} purchases:"
     buyers.each do |buyer|
       amount = "0x" + $f.to_wei([SecureRandom.random_number(99), SecureRandom.random_number(2000)].sample, 'ether').to_s(16)
@@ -180,10 +180,15 @@ if environment == "development"
     end
     sleep 5
   end
+  buyers.each do |buyer|
+    token_sales.t_claim_for(buyer)
+  end
 end
 token_sales.as(coinbase)
 config.tw_set_config_address("sale1:dao", dao.address)
 token_sales.tw_unlock
 token_sales.tw_send_funds
+badge_ledger = Badge.new
+badge_ledger.at(token_ledger.c_badge_ledger)
 
 binding.pry
