@@ -35,6 +35,16 @@ contract Proposal {
   event Pledge(address indexed _pledger, uint256 indexed _amount, bool indexed _approve);
   event Vote(address indexed _pledger, uint256 indexed _amount, bool indexed _approve);
 
+  modifier onlyAfter(uint _time) {
+    if (now < _time) throw;
+    _
+  }
+
+  modifier onlyBefore(uint _time) {
+    if (now > _time) throw;
+    _
+  }
+
   function Proposal(address _config, address _badgeledger, address _tokenledger, bytes32 _environment, bool _dissolve) {
     proposer = tx.origin;
     badgeLedger = _badgeledger;
@@ -69,29 +79,18 @@ contract Proposal {
     return pledge(false);
   }
 
-  function pledge(bool _pledge) internal returns (bool success) {
+  function pledge(bool _pledge) onlyAfter(pledgeData.startDate) onlyBefore(pledgeData.endDate) internal returns (bool success) {
     uint256 _allowance = Badge(badgeLedger).allowance(msg.sender, address(this));
-    if ((now < pledgeData.startDate) || (now > pledgeData.endDate) || (_allowance == 0)) {
+    if (!Badge(badgeLedger).transferFrom(msg.sender, address(this), _allowance)) {
       success = false;
     } else {
-      if (!Badge(badgeLedger).transferFrom(msg.sender, address(this), _allowance)) {
-        success = false;
-      } else {
-        if (_pledge == true) pledgeData.totalApproves += _allowance;
-        if (_pledge == false) pledgeData.totalDeclines += _allowance;
-        pledgeData.balances[msg.sender] = _allowance;
-        Pledge(msg.sender, _allowance, _pledge);
-        success = true;
-      }
+      if (_pledge == true) pledgeData.totalApproves += _allowance;
+      if (_pledge == false) pledgeData.totalDeclines += _allowance;
+      pledgeData.balances[msg.sender] = _allowance;
+      Pledge(msg.sender, _allowance, _pledge);
+      success = true;
     }
     return success;
-  }
-
-  function getStatus() returns (uint8 status) {
-    if ((now > pledgeData.startDate) && (now < pledgeData.endDate)) status = uint8(Status.Pledging);
-    uint256 _pledgecount = Badge(badgeLedger).balanceOf(address(this));
-    if ((now > pledgeData.endDate) && (_pledgecount < minPledges)) status = uint8(Status.FailPledge);
-    return status;
   }
 
   function getInfo() public constant returns (uint8 istatus, uint256 pstartdate, uint256 penddate, uint256 papproves, uint256 pdeclines, uint256 ptotals, uint256 vstartdate, uint256 venddate, uint256 vapproves, uint256 vdeclines, uint256 vtotals) {
