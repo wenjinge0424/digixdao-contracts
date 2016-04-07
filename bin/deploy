@@ -64,7 +64,7 @@ end
 sale_amount = 1_700_000
 founders_amount = 300_000
 
-bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 26)
+bar = TTY::ProgressBar.new("Configuring DAO [:bar]", total: 28)
 puts "Setting Configurations".colorize(:light_magenta)
 config.tw_set_config_uint("sale1:period1", period_one)
 2.times { bar.advance }
@@ -92,6 +92,8 @@ config.tw_set_config_uint("sale1:badgecost", badge_cost)
 config.tw_set_config_uint("pledges:minimum", 20)
 2.times { bar.advance }
 config.tw_set_config_uint("votes:minimum", 100_000)
+2.times { bar.advance }
+config.tw_set_config_address("provider:address", coinbase)
 2.times { bar.advance }
 
 puts "Crowdsale configured start: #{config.c_get_config_uint("sale1:period1").to_s.colorize(:light_blue)}"
