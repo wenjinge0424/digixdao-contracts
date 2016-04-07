@@ -38,9 +38,17 @@ contract Proposal {
     provider = ConfigInterface(_config).getConfigAddress("provider:address");
   }
 
-  function pledge(bool _pledge) returns (bool success) {
+  function pledge(bool _pledge, uint256 _amount) returns (bool success) {
     uint256 _allowance = Badge(badgeLedger).allowance(msg.sender, address(this));
     if (_allowance <= 0) return false;
+    if (!Badge(badgeLedger).transferFrom(msg.sender, address(this), _allowance)) return false;
+    pledgedata.balances[msg.sender] = _allowance;
+    if (_pledge == true) {
+      pledgedata.totalApproves++;
+    } else {
+      pledgedata.totalDeclines++;
+    }
+    return true;
   }
 
   function vote(bool _vote) returns (bool success) {
@@ -63,12 +71,17 @@ contract Proposal {
 
 contract Dao {
   
+  struct ProposalData {
+    uint256 budget;
+    bytes32 document;
+  }
+
   address public config;
   address public owner;
   address public tokenLedger;
   address public badgeLedger;
   mapping (uint256 => address) tokenSales;
-  mapping (address => bool) proposals;
+  mapping (address => ProposalData) proposals;
 
   event NewProposal(address indexed _proposal, bytes32 indexed _document, uint256 indexed _budget);
 
@@ -83,8 +96,8 @@ contract Dao {
     if (Badge(badgeLedger).balanceOf(msg.sender) <= 0) throw;
     if (_weibudget > funds()) throw;
     address _proposal = new Proposal(config);
-    if (address(_proposal).send(_weibudget)) throw;
-    proposals[_proposal] = true;
+    proposals[_proposal].budget = _weibudget;
+    proposals[_proposal].document = _document;
     NewProposal(_proposal, _document, _weibudget);
   }
 
