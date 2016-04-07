@@ -54,8 +54,8 @@ if environment == "production"
 else
   period_one = (DateTime.now.utc + 2.minutes).to_i
   period_two = (period_one + 2.minutes).to_i
-  period_three = (period_two + 2.minutes).to_i
-  end_date = (period_three + 2.minutes).to_i
+  period_three = (period_two + 1.minutes).to_i
+  end_date = (period_three + 1.minutes).to_i
   goal = 500_000
   badge_cost = 15_000
   cap = 5_500_000
@@ -182,11 +182,11 @@ if environment == "development"
   accounts = $eth.accounts["result"]
   buyers = accounts[1..20]
   while token_sales.c_get_period == 0
-    puts "Sale period has not started"
+    puts "Waiting for sale period to start..."
     sleep 5
   end
   while (token_sales.c_get_period != 0) && ((token_sales.c_get_sale_info[2] / 100.00) < 5_100_000) && (!token_sales.c_is_ended)
-    puts "Period #{token_sales.c_get_period} purchases:".colorize(:blue)
+    puts "Performing period #{token_sales.c_get_period} purchases...".colorize(:blue)
     buyers.each do |buyer|
       amount = "0x" + $f.to_wei([SecureRandom.random_number(99), SecureRandom.random_number(2000)].sample, 'ether').to_s(16)
       $eth.send_transaction({from: buyer, to: token_sales.address, value: amount, gas: 200000, gasPrice: gas_price})
