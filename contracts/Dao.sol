@@ -19,7 +19,7 @@ contract Proposal {
     uint256 totalDeclines;
   }
 
-  enum Status { Pledging, Voting, Completed }
+  enum Status { Pledging, FailPledge, Voting, FailVote, Completed }
 
   address public proposer;
   address public provider;
@@ -27,15 +27,15 @@ contract Proposal {
   address public tokenLedger;
   uint256 public minPledges;
   uint256 public minVotes;
+  bool public dissolve;
   PledgeData pledgeData;
   VoteData voteData;
-  uint8 public status;
   bytes32 public environment;
 
   event Pledge(address indexed _pledger, uint256 indexed _amount, bool indexed _approve);
   event Vote(address indexed _pledger, uint256 indexed _amount, bool indexed _approve);
 
-  function Proposal(address _config, address _badgeledger, address _tokenledger, bytes32 _environment) {
+  function Proposal(address _config, address _badgeledger, address _tokenledger, bytes32 _environment, bool _dissolve) {
     proposer = tx.origin;
     badgeLedger = _badgeledger;
     tokenLedger = _tokenledger;
@@ -47,11 +47,17 @@ contract Proposal {
     voteData.totalApproves = 0;
     voteData.totalDeclines = 0;
     pledgeData.startDate = now;
+    dissolve = _dissolve;
     environment = _environment;
-    if (environment == "mainnet") pledgeData.endDate = now + 1 weeks;
-    if (environment == "testnet") pledgeData.endDate = now + 20 minutes;
-    if (environment == "morden") pledgeData.endDate = now + 1 days;
-    status = uint8(Status.Pledging);
+    if (dissolve) {
+      if (environment == "mainnet") pledgeData.endDate = now + 1 weeks;
+      if (environment == "testnet") pledgeData.endDate = now + 20 minutes;
+      if (environment == "morden") pledgeData.endDate = now + 1 days;
+    } else {
+      if (environment == "mainnet") pledgeData.endDate = now + 1 years;
+      if (environment == "testnet") pledgeData.endDate = now + 20 minutes;
+      if (environment == "morden") pledgeData.endDate = now + 1 days;
+    }
     environment = environment;
   }
 
@@ -63,21 +69,35 @@ contract Proposal {
     return pledge(false);
   }
 
-  function pledge(bool _pledge) returns (bool success) {
+  function pledge(bool _pledge) internal returns (bool success) {
     uint256 _allowance = Badge(badgeLedger).allowance(msg.sender, address(this));
-    if (_allowance == 0) return false;
-    if (!Badge(badgeLedger).transferFrom(msg.sender, address(this), _allowance)) return false;
-    if (_pledge == true) pledgeData.totalApproves += _allowance;
-    if (_pledge == false) pledgeData.totalDeclines += _allowance;
-    pledgeData.balances[msg.sender] = _allowance;
-    Pledge(msg.sender, _allowance, _pledge);
-    return true;
+    if ((now < pledgeData.startDate) || (now > pledgeData.endDate) || (_allowance == 0)) {
+      success = false;
+    } else {
+      if (!Badge(badgeLedger).transferFrom(msg.sender, address(this), _allowance)) {
+        success = false;
+      } else {
+        if (_pledge == true) pledgeData.totalApproves += _allowance;
+        if (_pledge == false) pledgeData.totalDeclines += _allowance;
+        pledgeData.balances[msg.sender] = _allowance;
+        Pledge(msg.sender, _allowance, _pledge);
+        success = true;
+      }
+    }
+    return success;
+  }
+
+  function getStatus() returns (uint8 status) {
+    if ((now > pledgeData.startDate) && (now < pledgeData.endDate)) status = uint8(Status.Pledging);
+    uint256 _pledgecount = Badge(badgeLedger).balanceOf(address(this));
+    if ((now > pledgeData.endDate) && (_pledgecount < minPledges)) status = uint8(Status.FailPledge);
+    return status;
   }
 
   function getInfo() public constant returns (uint8 istatus, uint256 pstartdate, uint256 penddate, uint256 papproves, uint256 pdeclines, uint256 ptotals, uint256 vstartdate, uint256 venddate, uint256 vapproves, uint256 vdeclines, uint256 vtotals) {
     (pstartdate, penddate, papproves, pdeclines, ptotals) = (pledgeData.startDate, pledgeData.endDate, pledgeData.totalApproves, pledgeData.totalDeclines, (pledgeData.totalApproves + pledgeData.totalDeclines));
     (vstartdate, venddate, vapproves, vdeclines, vtotals) = (voteData.startDate, voteData.endDate, voteData.totalApproves, voteData.totalDeclines, (voteData.totalApproves + voteData.totalDeclines));
-    return (status, pstartdate, penddate, papproves, pdeclines, ptotals, vstartdate, venddate, vapproves, vdeclines, vtotals);
+    return (getStatus(), pstartdate, penddate, papproves, pdeclines, ptotals, vstartdate, venddate, vapproves, vdeclines, vtotals);
   }
 
   function getUserInfo(address _user) public constant returns (uint256 pledgecount, uint256 votecount) {
@@ -135,6 +155,8 @@ contract Dao {
   uint256 public proposalsCount;
   bytes32 public environment;
 
+  enum Status { Pledging, Voting, Completed }
+
   event NewProposal(address indexed _proposal, bytes32 indexed _document, uint256 indexed _budget);
 
   function Dao(address _config) {
@@ -146,15 +168,25 @@ contract Dao {
     proposalsCount = 0;
   }
 
-  function propose(bytes32 _document, uint256 _weibudget) {
+  function iPropose(bytes32 _document, uint256 _weibudget, bool _dissolve) internal returns (bool success) {
     if (Badge(badgeLedger).balanceOf(msg.sender) <= 0) throw;
     if (_weibudget > funds()) throw;
-    address _proposal = new Proposal(config, badgeLedger, tokenLedger, environment);
+    address _proposal = new Proposal(config, badgeLedger, tokenLedger, environment, _dissolve);
     proposals[_proposal].budget = _weibudget;
     proposals[_proposal].document = _document;
     proposalsCount++;
     proposalIndex[proposalsCount] = _proposal;
     NewProposal(_proposal, _document, _weibudget);
+    return true;
+  }
+
+  function propose(bytes32 _document, uint256 _weibudget) returns (bool success) {
+    return (iPropose(_document, _weibudget, false));
+  }
+
+  function proposeDissolve(bytes32 _document) returns (bool success) {
+    uint256 _weibudget = funds();
+    return (iPropose(_document, _weibudget, true));
   }
 
   function getProposal(uint256 _index) public constant returns (address proposal) {
