@@ -99,6 +99,10 @@ contract Proposal {
     return (getStatus(), pstartdate, penddate, papproves, pdeclines, ptotals, vstartdate, venddate, vapproves, vdeclines, vtotals);
   }
 
+  function getStatus() public constant returns (uint8 status) {
+    return uint8(Status.Voting);
+  } 
+
   function getUserInfo(address _user) public constant returns (uint256 pledgecount, uint256 votecount) {
     return (pledgeData.balances[_user], voteData.balances[_user]);
   }
