@@ -16,6 +16,7 @@ $eth = $ethereum_client
 $formatter = Ethereum::Formatter.new
 $f = $formatter
 environment = ARGV[0] || "development"
+pi_million = (Math::PI * 1_000_000).to_i
 
 project.contracts.each do |contract|
   contract.build($ethereum_client)
@@ -36,7 +37,7 @@ end
 gas_price = $formatter.to_wei(20, 'shannon')
 config = Config.new
 config.as(coinbase)
-config.set_gas(2000000)
+config.set_gas(pi_million)
 config.set_gas_price(gas_price)
 puts "Deploying Configuration".colorize(:light_magenta)
 config.deploy_and_wait(120)
@@ -103,7 +104,7 @@ puts "Crowdsale configured Proposer Badge Cost: #{config.c_get_config_uint("sale
 
 token_sales = TokenSales.new
 token_sales.as(coinbase)
-token_sales.set_gas(3000000)
+token_sales.set_gas(pi_million)
 token_sales.set_gas_price(gas_price)
 token_sales.deploy_and_wait(120, config.address)
 puts "Deploying Token Sales".colorize(:light_magenta)
@@ -113,12 +114,17 @@ puts "Setting default ETH price".colorize(:light_magenta)
 token_sales.tw_set_eth_to_cents(1149)
 token_ledger = Token.new
 token_ledger.as(coinbase)
-token_ledger.set_gas(3000000)
+token_ledger.set_gas(pi_million)
 token_ledger.set_gas_price(gas_price)
 puts "Deploying Token Ledger".colorize(:light_magenta)
 token_ledger.deploy_and_wait(120, config.address)
 config.tw_set_config_address("ledger", token_ledger.address)
 puts "Crowdsale configured ledger contract: #{config.c_get_config_address("ledger").colorize(:light_green)}"
+dao = Dao.new
+dao.as(coinbase)
+dao.set_gas(pi_million)
+dao.set_gas_price(gas_price)
+dao.deploy_and_wait(120, config.address)
 
 build_dir = File.join(ENV['PWD'], "build", environment)
 FileUtils.rm_rf(build_dir) if Dir.exists?(build_dir)
@@ -148,3 +154,5 @@ end
 
 rake_cmd = "rake copy_contracts"
 puts "Completed deployment.  Please be sure to run #{rake_cmd.colorize(:light_white)} in your application"
+
+binding.pry
