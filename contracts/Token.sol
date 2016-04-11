@@ -53,24 +53,14 @@ contract Badge  {
   }
 
   function approve(address _spender, uint256 _value) returns (bool success) {
-    if (balances[msg.sender] < _value) {
-      success = false;
-    } else {
-      allowed[msg.sender][_spender] = _value;
-      Approval(msg.sender, _spender, _value);
-      success = true;
-    }
+    allowed[msg.sender][_spender] = _value;
+    Approval(msg.sender, _spender, _value);
+    success = true;
     return success;
   }
 
   function allowance(address _owner, address _spender) constant returns (uint256 remaining) {
-    uint256 _allowance = allowed[_owner][_spender];
-    uint256 _balance = balances[_owner];
-    if (_allowance > _balance) {
-      remaining = _balance;
-    } else {
-      remaining = _allowance;
-    }
+    remaining = allowed[_owner][_spender];
     return remaining;
   }
 
@@ -143,24 +133,14 @@ contract Token is TokenInterface {
   }
 
   function approve(address _spender, uint256 _value) returns (bool success) {
-    if (balances[msg.sender] < _value) {
-      success = false;
-    } else {
-      allowed[msg.sender][_spender] = _value;
-      Approval(msg.sender, _spender, _value);
-      success = true;
-    }
+    allowed[msg.sender][_spender] = _value;
+    Approval(msg.sender, _spender, _value);
+    success = true;
     return success;
   }
 
   function allowance(address _owner, address _spender) constant returns (uint256 remaining) {
-    uint256 _allowance = allowed[_owner][_spender];
-    uint256 _balance = balances[_owner];
-    if (_allowance > _balance) {
-      remaining = _balance;
-    } else {
-      remaining =  _allowance;
-    }
+    remaining = allowed[_owner][_spender];
     return remaining;
   }
   function mint(address _owner, uint256 _amount) ifSales returns (bool success) {
