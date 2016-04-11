@@ -9,6 +9,7 @@ contract Proposal {
     mapping (address => uint256) balances;
     uint256 totalApproves;
     uint256 totalDeclines;
+    bool resolved;
   }
 
   struct VoteData {
@@ -17,6 +18,7 @@ contract Proposal {
     mapping (address => uint256) balances;
     uint256 totalApproves;
     uint256 totalDeclines;
+    bool resolved;
   }
 
   enum Status { Pledging, FailPledge, Voting, FailVote, Completed }
@@ -44,6 +46,13 @@ contract Proposal {
     if (now > _time) throw;
     _
   }
+  
+  /// @notice Create a new proposal
+  /// @param _config The address for the configuration contract
+  /// @param _badgeledger The address for the badge contract
+  /// @param _tokenledger The address for the token contract
+  /// @param _environment The environment 'mainnet', 'morden', or 'testnet'
+  /// @param _dissolve Whether or not this is a proposal to dissolve the contract
 
   function Proposal(address _config, address _badgeledger, address _tokenledger, bytes32 _environment, bool _dissolve) {
     proposer = tx.origin;
@@ -54,8 +63,10 @@ contract Proposal {
     provider = ConfigInterface(_config).getConfigAddress("provider:address");
     pledgeData.totalApproves = 0;
     pledgeData.totalDeclines = 0;
+    pledgeData.resolved = false;
     voteData.totalApproves = 0;
     voteData.totalDeclines = 0;
+    voteData.resolved = false;
     pledgeData.startDate = now;
     dissolve = _dissolve;
     environment = _environment;
@@ -71,27 +82,51 @@ contract Proposal {
     environment = environment;
   }
 
-  function pledgeApprove() returns (bool success) {
-    return pledge(true);
+
+
+  /// @notice Approve the pledge
+  /// @return `success` whether or not the call succeeded
+
+  function pledgeApprove(uint256 _amount) returns (bool success) {
+    return pledge(true, _amount);
+  }
+  
+  /// @notice Decline the pledge
+  /// @return `success` whether or not the call succeeded
+
+  function pledgeDecline(uint256 _amount) returns (bool success) {
+    return pledge(false, _amount);
   }
 
-  function pledgeDecline() returns (bool success) {
-    return pledge(false);
-  }
+  /// @notice Send a pledge on the proposal
+  /// @param _pledge Send true to approve or false to decline
+  /// @return `success` whether or not the call succeeded
 
-  function pledge(bool _pledge) onlyAfter(pledgeData.startDate) onlyBefore(pledgeData.endDate) internal returns (bool success) {
-    uint256 _allowance = Badge(badgeLedger).allowance(msg.sender, address(this));
-    if (!Badge(badgeLedger).transferFrom(msg.sender, address(this), _allowance)) {
+  function pledge(bool _pledge, uint256 _amount) onlyAfter(pledgeData.startDate) onlyBefore(pledgeData.endDate) internal returns (bool success) {
+    if (!Badge(badgeLedger).transferFrom(msg.sender, address(this), _amount)) {
       success = false;
     } else {
       if (_pledge == true) pledgeData.totalApproves += _allowance;
       if (_pledge == false) pledgeData.totalDeclines += _allowance;
       pledgeData.balances[msg.sender] = _allowance;
-      Pledge(msg.sender, _allowance, _pledge);
+      Pledge(msg.sender, _amount, _pledge);
       success = true;
     }
     return success;
   }
+
+  /// @notice Get information about the proposal
+  /// @return `istatus` The status of the proposal
+  /// @return `pstartdate` The pledging start date
+  /// @return `penddate` The pledging end date
+  /// @return `papproves` The number of approve pledges
+  /// @return `pdeclines` The number of decline pledges
+  /// @return `ptotals` The total number of pledges
+  /// @return `vstartdate` The voting start date
+  /// @return `venddate` The voting end date
+  /// @return `vapproves` The number of approve votes
+  /// @return `vdeclines` The number of decline votes
+  /// @return `vtotals` The total number of votes
 
   function getInfo() public constant returns (uint8 istatus, uint256 pstartdate, uint256 penddate, uint256 papproves, uint256 pdeclines, uint256 ptotals, uint256 vstartdate, uint256 venddate, uint256 vapproves, uint256 vdeclines, uint256 vtotals) {
     (pstartdate, penddate, papproves, pdeclines, ptotals) = (pledgeData.startDate, pledgeData.endDate, pledgeData.totalApproves, pledgeData.totalDeclines, (pledgeData.totalApproves + pledgeData.totalDeclines));
@@ -138,7 +173,7 @@ contract Proposal {
   function budget() public constant returns (uint256 _weibudget) {
     return address(this).balance;
   }
- 
+
 }
 
 contract Dao {
@@ -198,6 +233,17 @@ contract Dao {
 
   function funds() public constant returns (uint256 weifunds) {
     return address(this).balance;
+  }
+
+  function partsPerBillion(uint256 _a, uint256 _c) returns (uint256 b) {
+    b = (1000000000 * _a + _c / 2) / _c;
+    return b;
+  }
+
+  function calcShare(uint256 _antecedent, uint256 _consequent, uint256 _amount) returns (uint256 share) {
+    uint256 _ppb = partsPerBillion(_antecedent, _consequent);
+    share = ((_ppb * _amount) / 1000000000);
+    return share;
   }
 
 }
