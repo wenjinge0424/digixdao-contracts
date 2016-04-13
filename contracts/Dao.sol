@@ -9,7 +9,6 @@ contract Proposal {
     mapping (address => uint256) balances;
     uint256 totalApproves;
     uint256 totalDeclines;
-    bool resolved;
   }
 
   struct VoteData {
@@ -18,13 +17,15 @@ contract Proposal {
     mapping (address => uint256) balances;
     uint256 totalApproves;
     uint256 totalDeclines;
-    bool resolved;
   }
 
   enum Status { Pledging, FailPledge, Voting, FailVote, Completed }
 
+  Status public status = Status.Pledging;
+
   address public proposer;
   address public provider;
+  address public dao;
   address public badgeLedger;
   address public tokenLedger;
   uint256 public minPledges;
@@ -38,43 +39,58 @@ contract Proposal {
   event Vote(address indexed _pledger, uint256 indexed _amount, bool indexed _approve);
 
   modifier onlyAfter(uint _time) {
-    if (now < _time) throw;
-    _
+    if (now < _time) {
+      throw;
+    } else {
+      _
+    }
   }
 
   modifier onlyBefore(uint _time) {
-    if (now > _time) throw;
-    _
-  }
-
-  modifier onlyPledged() {
-    if (dissolve) {
-      if ((partsPerBillion(pledgeData.totalApproves, (pledgeData.totalApproves + pledgeData.totalDeclines)) < 800000000)) throw;
+    if (now > _time) { 
+      throw;
     } else {
-      if ((partsPerBillion(pledgeData.totalApproves, (pledgeData.totalApproves + pledgeData.totalDeclines)) < 500000000)) throw;
+      _
     }
-    _ 
   }
 
-  modifier onlyVoted() {
-    if (dissolve) {
-      if ((partsPerBillion(voteData.totalApproves, (voteData.totalApproves + voteData.totalDeclines)) < 800000000)) throw;
+  modifier atStatus(Status _status) {
+    if (_status != status) { 
+      throw;
     } else {
-      if ((partsPerBillion(voteData.totalApproves, (voteData.totalApproves + voteData.totalDeclines)) < 500000000)) throw;
+      _
     }
-    _ 
   }
 
-  
-  /// @notice Create a new proposal
-  /// @param _config The address for the configuration contract
-  /// @param _badgeledger The address for the badge contract
-  /// @param _tokenledger The address for the token contract
-  /// @param _environment The environment 'mainnet', 'morden', or 'testnet'
-  /// @param _dissolve Whether or not this is a proposal to dissolve the contract
+  function resolvePledges() onlyAfter(pledgeData.endDate) atStatus(Status.Pledging) internal returns (bool _success) {
+    uint256 _totalpledges = pledgeData.totalApproves + pledgeData.totalDeclines;
+    uint256 _approveppb = partsPerBillion(pledgeData.totalApproves, _totalpledges); 
+    if (dissolve) {
+      if (_approveppb <= 800000000) {
+        status = Status.FailPledge;
+      } else {
+        status = Status.Voting;
+      }
+    } else {
+      if (_approveppb <= 500000000) {
+        status = Status.FailPledge;
+      } else {
+        status = Status.Voting;
+      }
+    }
+    _success = true;
+    return _success;
+  }
+
+  function resolvePledgeFail() onlyAfter(pledgeData.endDate) atStatus(Status.FailPledge) internal returns (bool _success) {
+  }
+
+  function resolveVotes() onlyAfter(voteData.endDate) atStatus(Status.Voting) internal returns (bool _success) {
+  }
 
   function Proposal(address _config, address _badgeledger, address _tokenledger, bytes32 _environment, bool _dissolve) {
     proposer = tx.origin;
+    dao = msg.sender;
     badgeLedger = _badgeledger;
     tokenLedger = _tokenledger;
     minPledges = ConfigInterface(_config).getConfigUint("pledges:minimum");
@@ -82,10 +98,8 @@ contract Proposal {
     provider = ConfigInterface(_config).getConfigAddress("provider:address");
     pledgeData.totalApproves = 0;
     pledgeData.totalDeclines = 0;
-    pledgeData.resolved = false;
     voteData.totalApproves = 0;
     voteData.totalDeclines = 0;
-    voteData.resolved = false;
     pledgeData.startDate = now;
     dissolve = _dissolve;
     environment = _environment;
@@ -112,24 +126,13 @@ contract Proposal {
     return share;
   }
 
-
-  /// @notice Approve the pledge
-  /// @return `success` whether or not the call succeeded
-
   function pledgeApprove(uint256 _amount) returns (bool success) {
     return pledge(true, _amount);
   }
-  
-  /// @notice Decline the pledge
-  /// @return `success` whether or not the call succeeded
 
   function pledgeDecline(uint256 _amount) returns (bool success) {
     return pledge(false, _amount);
   }
-
-  /// @notice Send a pledge on the proposal
-  /// @param _pledge Send true to approve or false to decline
-  /// @return `success` whether or not the call succeeded
 
   function pledge(bool _pledge, uint256 _amount) onlyAfter(pledgeData.startDate) onlyBefore(pledgeData.endDate) internal returns (bool success) {
     if (!Badge(badgeLedger).transferFrom(msg.sender, address(this), _amount)) {
@@ -144,18 +147,6 @@ contract Proposal {
     return success;
   }
 
-  /// @notice Get information about the proposal
-  /// @return `istatus` The status of the proposal
-  /// @return `pstartdate` The pledging start date
-  /// @return `penddate` The pledging end date
-  /// @return `papproves` The number of approve pledges
-  /// @return `pdeclines` The number of decline pledges
-  /// @return `ptotals` The total number of pledges
-  /// @return `vstartdate` The voting start date
-  /// @return `venddate` The voting end date
-  /// @return `vapproves` The number of approve votes
-  /// @return `vdeclines` The number of decline votes
-  /// @return `vtotals` The total number of votes
 
   function getInfo() public constant returns (uint8 istatus, uint256 pstartdate, uint256 penddate, uint256 papproves, uint256 pdeclines, uint256 ptotals, uint256 vstartdate, uint256 venddate, uint256 vapproves, uint256 vdeclines, uint256 vtotals) {
     (pstartdate, penddate, papproves, pdeclines, ptotals) = (pledgeData.startDate, pledgeData.endDate, pledgeData.totalApproves, pledgeData.totalDeclines, (pledgeData.totalApproves + pledgeData.totalDeclines));
@@ -184,7 +175,7 @@ contract Proposal {
   }
 
 
-  function vote(bool _vote, uint256 _amount) onlyPledged onlyAfter(voteData.startDate) onlyBefore(voteData.endDate) internal returns (bool success) {
+  function vote(bool _vote, uint256 _amount) atStatus(Status.Voting) onlyAfter(voteData.startDate) onlyBefore(voteData.endDate) internal returns (bool success) {
     if (!Token(tokenLedger).transferFrom(msg.sender, address(this), _amount)) {
       success = false;
     } else {
@@ -197,7 +188,7 @@ contract Proposal {
     return success;
   }
 
-  function resolve() onlyPledged onlyVoted onlyAfter(voteData.endDate) returns (bool success) {
+  function resolve() returns (bool success) {
     return true;
   }
 
