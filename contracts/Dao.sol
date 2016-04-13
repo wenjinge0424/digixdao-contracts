@@ -46,6 +46,25 @@ contract Proposal {
     if (now > _time) throw;
     _
   }
+
+  modifier onlyPledged() {
+    if (dissolve) {
+      if ((partsPerBillion(pledgeData.totalApproves, (pledgeData.totalApproves + pledgeData.totalDeclines)) < 800000000)) throw;
+    } else {
+      if ((partsPerBillion(pledgeData.totalApproves, (pledgeData.totalApproves + pledgeData.totalDeclines)) < 500000000)) throw;
+    }
+    _ 
+  }
+
+  modifier onlyVoted() {
+    if (dissolve) {
+      if ((partsPerBillion(voteData.totalApproves, (voteData.totalApproves + voteData.totalDeclines)) < 800000000)) throw;
+    } else {
+      if ((partsPerBillion(voteData.totalApproves, (voteData.totalApproves + voteData.totalDeclines)) < 500000000)) throw;
+    }
+    _ 
+  }
+
   
   /// @notice Create a new proposal
   /// @param _config The address for the configuration contract
@@ -82,6 +101,16 @@ contract Proposal {
     environment = environment;
   }
 
+  function partsPerBillion(uint256 _a, uint256 _c) returns (uint256 b) {
+    b = (1000000000 * _a + _c / 2) / _c;
+    return b;
+  }
+
+  function calcShare(uint256 _antecedent, uint256 _consequent, uint256 _amount) returns (uint256 share) {
+    uint256 _ppb = partsPerBillion(_antecedent, _consequent);
+    share = ((_ppb * _amount) / 1000000000);
+    return share;
+  }
 
 
   /// @notice Approve the pledge
@@ -106,9 +135,9 @@ contract Proposal {
     if (!Badge(badgeLedger).transferFrom(msg.sender, address(this), _amount)) {
       success = false;
     } else {
-      if (_pledge == true) pledgeData.totalApproves += _allowance;
-      if (_pledge == false) pledgeData.totalDeclines += _allowance;
-      pledgeData.balances[msg.sender] = _allowance;
+      if (_pledge == true) pledgeData.totalApproves += _amount;
+      if (_pledge == false) pledgeData.totalDeclines += _amount;
+      pledgeData.balances[msg.sender] = _amount;
       Pledge(msg.sender, _amount, _pledge);
       success = true;
     }
@@ -146,27 +175,37 @@ contract Proposal {
     return getUserInfo(msg.sender);
   }
 
-  function voteApprove() returns (bool success) {
-    return vote(true);
+  function voteApprove(uint256 _amount) returns (bool success) {
+    return vote(true, _amount);
   }
 
-  function voteDecline() returns (bool success) {
-    return vote(false);
+  function voteDecline(uint256 _amount) returns (bool success) {
+    return vote(false, _amount);
   }
 
-  function vote(bool _vote) returns (bool success) {
+
+  function vote(bool _vote, uint256 _amount) onlyPledged onlyAfter(voteData.startDate) onlyBefore(voteData.endDate) internal returns (bool success) {
+    if (!Token(tokenLedger).transferFrom(msg.sender, address(this), _amount)) {
+      success = false;
+    } else {
+      if (_vote == true) voteData.totalApproves += _amount;
+      if (_vote == false) voteData.totalDeclines += _amount;
+      voteData.balances[msg.sender] = _amount;
+      Vote(msg.sender, _amount, _vote);
+      success = true;
+    }
+    return success;
+  }
+
+  function resolve() onlyPledged onlyVoted onlyAfter(voteData.endDate) returns (bool success) {
     return true;
   }
 
-  function resolve() returns (bool success) {
+  function releaseBadges() onlyAfter(pledgeData.endDate) returns (bool success) {
     return true;
   }
 
-  function releaseBadges() returns (bool success) {
-    return true;
-  }
-
-  function releaseTokens() returns (bool success) {
+  function releaseTokens() onlyAfter(voteData.endDate) returns (bool success) {
     return true;
   }
 
@@ -206,25 +245,38 @@ contract Dao {
     proposalsCount = 0;
   }
 
-  function iPropose(bytes32 _document, uint256 _weibudget, bool _dissolve) internal returns (bool success) {
+  function iPropose(bytes32 _document, uint256 _weibudget, bool _dissolve) internal returns (bool success, address proposal) {
     if (Badge(badgeLedger).balanceOf(msg.sender) <= 0) throw;
     if (_weibudget > funds()) throw;
-    address _proposal = new Proposal(config, badgeLedger, tokenLedger, environment, _dissolve);
-    proposals[_proposal].budget = _weibudget;
-    proposals[_proposal].document = _document;
+    proposal = new Proposal(config, badgeLedger, tokenLedger, environment, _dissolve);
+    proposals[proposal].budget = _weibudget;
+    proposals[proposal].document = _document;
     proposalsCount++;
-    proposalIndex[proposalsCount] = _proposal;
-    NewProposal(_proposal, _document, _weibudget);
-    return true;
+    proposalIndex[proposalsCount] = proposal;
+    NewProposal(proposal, _document, _weibudget);
+    return (true, proposal);
   }
 
-  function propose(bytes32 _document, uint256 _weibudget) returns (bool success) {
-    return (iPropose(_document, _weibudget, false));
+  function propose(bytes32 _document, uint256 _weibudget) returns (bool success, address proposal) {
+    if (Badge(badgeLedger).balanceOf(msg.sender) <= 0) return (false, 0x0000000000000000000000000000000000000000);
+    (success, proposal) = iPropose(_document, _weibudget, false);
+    if (success) {
+      if (proposal.send(_weibudget)) return (success, proposal);
+    } else {
+      success = false;
+      return (success, 0x0000000000000000000000000000000000000000);
+    }
   }
 
-  function proposeDissolve(bytes32 _document) returns (bool success) {
+  function proposeDissolve(bytes32 _document) returns (bool success, address proposal) {
+    if (Badge(badgeLedger).balanceOf(msg.sender) <= 0) return (false, 0x0000000000000000000000000000000000000000);
     uint256 _weibudget = funds();
-    return (iPropose(_document, _weibudget, true));
+    if (success) {
+      if (proposal.send(_weibudget)) return (success, proposal);
+    } else {
+      success = false;
+      return (success, 0x0000000000000000000000000000000000000000);
+    }
   }
 
   function getProposal(uint256 _index) public constant returns (address proposal) {
@@ -233,17 +285,6 @@ contract Dao {
 
   function funds() public constant returns (uint256 weifunds) {
     return address(this).balance;
-  }
-
-  function partsPerBillion(uint256 _a, uint256 _c) returns (uint256 b) {
-    b = (1000000000 * _a + _c / 2) / _c;
-    return b;
-  }
-
-  function calcShare(uint256 _antecedent, uint256 _consequent, uint256 _amount) returns (uint256 share) {
-    uint256 _ppb = partsPerBillion(_antecedent, _consequent);
-    share = ((_ppb * _amount) / 1000000000);
-    return share;
   }
 
 }

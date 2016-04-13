@@ -5,22 +5,37 @@ require 'active_support'
 require 'active_support/core_ext'
 require 'colorize'
 require 'tty'
+require 'tty-progressbar'
+require 'tty-spinner'
 require 'pry'
 require 'securerandom'
+
+environment = ARGV[0]
+if environment.nil?
+  environment = "development"
+end
 
 base_dir = ENV['PWD']
 project = Ethereum::ProjectInitializer.new("#{base_dir}/contracts/*.sol", true)
 $ethereum_client = Ethereum::HttpClient.new("localhost", "8545")
-$ipc_client = Ethereum::IpcClient.new("#{ENV['HOME']}/Library/Ethereum/geth.ipc")
+if environment == "development"
+  $ipc_client = Ethereum::IpcClient.new("#{ENV['PWD']}/testnet/geth.ipc")
+else
+  $ipc_client = Ethereum::IpcClient.new("#{ENV['HOME']}/Library/Ethereum/geth.ipc")
+end
 $eth = $ethereum_client
 $formatter = Ethereum::Formatter.new
 $f = $formatter
-environment = ARGV[0] || "development"
+
 pi_million = (Math::PI * 1_000_000).to_i
 
 project.contracts.each do |contract|
-  contract.build($ethereum_client)
+  contract.build($eth)
 end
+
+#project.contracts.each do |contract|
+  #contract.link_libraries
+#end
 
 if environment == "development"
   coinbase = $ethereum_client.coinbase["result"]
@@ -179,26 +194,30 @@ rake_cmd = "rake copy_contracts"
 puts "Completed deployment.  Please be sure to run #{rake_cmd.colorize(:light_white)} in your application"
 
 if environment == "development"
+  spinner = TTY::Spinner.new("Simulating crowdsale purchases ...")
   accounts = $eth.accounts["result"]
   buyers = accounts[1..20]
   while token_sales.c_get_period == 0
-    puts "Waiting for sale period to start..."
     sleep 5
+    spinner.spin
   end
   while (token_sales.c_get_period != 0) && ((token_sales.c_get_sale_info[2] / 100.00) < 5_100_000) && (!token_sales.c_is_ended)
-    puts "Performing period #{token_sales.c_get_period} purchases...".colorize(:blue)
     buyers.each do |buyer|
       amount = "0x" + $f.to_wei([SecureRandom.random_number(99), SecureRandom.random_number(2000)].sample, 'ether').to_s(16)
       $eth.send_transaction({from: buyer, to: token_sales.address, value: amount, gas: 200000, gasPrice: gas_price})
     end
     sleep 5
+    spinner.spin
   end
   while (!token_sales.c_is_ended)
     sleep 5
+    spinner.spin
   end
   buyers.each do |buyer|
     token_sales.t_claim_for(buyer)
+    spinner.spin
   end
+  spinner.stop("Done!")
 end
 
 token_sales.as(coinbase)
