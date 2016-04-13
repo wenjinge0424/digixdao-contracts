@@ -7,12 +7,15 @@ require 'colorize'
 require 'tty'
 require 'tty-progressbar'
 require 'tty-spinner'
+require 'tty-prompt'
+require 'tty-table'
 require 'pry'
 require 'securerandom'
 
 environment = ARGV[0]
 if environment.nil?
-  environment = "development"
+  prompt = TTY::Prompt.new
+  environment = prompt.select("Select deployment environment:", %w(development staging production))
 end
 
 base_dir = ENV['PWD']
@@ -123,20 +126,8 @@ end
 config.tw_set_config_bytes("environment", deploy_environment)
 2.times { bar.advance }
 
-puts "Crowdsale configured start: #{config.c_get_config_uint("sale1:period1").to_s.colorize(:light_blue)}"
-puts "Crowdsale configured period 2: #{config.c_get_config_uint("sale1:period2").to_s.colorize(:light_blue)}"
-puts "Crowdsale configured period 3: #{config.c_get_config_uint("sale1:period3").to_s.colorize(:light_blue)}"
-puts "Crowdsale configured end: #{config.c_get_config_uint("sale1:end").to_s.colorize(:light_blue)}"
-puts "Crowdsale configured total DAO tokens: #{config.c_get_config_uint("sale1:amount").to_s.colorize(:light_blue)}"
-puts "Crowdsale configured USD goal: #{config.c_get_config_uint("sale1:goal").to_s.colorize(:light_blue)}"
-puts "Crowdsale configured USD cap: #{config.c_get_config_uint("sale1:cap").to_s.colorize(:light_blue)}"
-puts "Crowdsale configured total DAO tokens for founders: #{config.c_get_config_uint("sale1:famount").to_s.colorize(:light_blue)}"
-puts "Crowdsale configured founder wallet: #{config.c_get_config_address("sale1:fwallet").colorize(:light_green)}"
-puts "Crowdsale configured Ether Payout Wallet (DAO): #{config.c_get_config_address("sale1:dao").colorize(:light_green)}"
-puts "Crowdsale configured Proposer Badge Cost: #{config.c_get_config_uint("sale1:badgecost").to_s.colorize(:light_green)}"
-puts "DAO configured Minimum Pledges: #{config.c_get_config_uint("pledges:minimum").to_s.colorize(:light_green)}"
-puts "DAO configured Minimum Votes: #{config.c_get_config_uint("votes:minimum").to_s.colorize(:light_green)}"
-puts "DAO configured Environment: #{config.c_get_config_bytes("environment").colorize(:green)}"
+
+
 
 token_sales = TokenSales.new
 token_sales.as(coinbase)
@@ -145,7 +136,7 @@ token_sales.set_gas_price(gas_price)
 token_sales.deploy_and_wait(120, config.address)
 puts "Deploying Token Sales".colorize(:light_magenta)
 config.tw_set_config_address("sale1:address", token_sales.address)
-puts "Crowdsale configured token sale contract: #{config.c_get_config_address("sale1:address").colorize(:light_green)}"
+puts 
 puts "Setting default ETH price".colorize(:light_magenta)
 token_sales.tw_set_eth_to_cents(1149)
 token_ledger = Token.new
@@ -155,8 +146,30 @@ token_ledger.set_gas_price(gas_price)
 puts "Deploying Token Ledger".colorize(:light_magenta)
 token_ledger.deploy_and_wait(120, config.address)
 config.tw_set_config_address("ledger", token_ledger.address)
-puts "Crowdsale configured ledger contract: #{config.c_get_config_address("ledger").colorize(:light_green)}"
 
+
+table = TTY::Table.new(
+  [
+    ["Name".colorize(:blue), "Value".colorize(:blue)],
+    ["Crowdsale configured start", "#{Time.at(config.c_get_config_uint("sale1:period1"))}"],
+    ["Crowdsale configured period 2", "#{Time.at(config.c_get_config_uint("sale1:period2"))}"],
+    ["Crowdsale configured period 3", "#{Time.at(config.c_get_config_uint("sale1:period3"))}"],
+    ["Crowdsale configured end", "#{Time.at(config.c_get_config_uint("sale1:end"))}"],
+    ["Crowdsale configured total DAO tokens", "#{config.c_get_config_uint("sale1:amount")}"],
+    ["Crowdsale configured USD goal", "#{config.c_get_config_uint("sale1:goal")}"],
+    ["Crowdsale configured USD cap", "#{config.c_get_config_uint("sale1:cap")}"],
+    ["Crowdsale configured total DAO tokens for founders", "#{config.c_get_config_uint("sale1:famount")}"],
+    ["Crowdsale configured founder wallet", "#{config.c_get_config_address("sale1:fwallet")}"],
+    ["Crowdsale configured Ether Payout Wallet (DAO)", "#{config.c_get_config_address("sale1:dao")}"],
+    ["Crowdsale configured Proposer Badge Cost", "#{config.c_get_config_uint("sale1:badgecost")}"],
+    ["DAO configured Minimum Pledges", "#{config.c_get_config_uint("pledges:minimum")}"],
+    ["DAO configured Minimum Votes", "#{config.c_get_config_uint("votes:minimum")}"],
+    ["DAO configured Environment", "#{config.c_get_config_bytes("environment")}"],
+    ["Crowdsale configured token sale contract", "#{config.c_get_config_address("sale1:address")}"],
+    ["Crowdsale configured ledger contract", "#{config.c_get_config_address("ledger")}"]
+  ]
+)
+puts table.render(:unicode, alignments: [:center, :center], padding: [0, 1, 0, 1])
 build_dir = File.join(ENV['PWD'], "build", environment)
 FileUtils.rm_rf(build_dir) if Dir.exists?(build_dir)
 FileUtils.mkdir_p(build_dir)
