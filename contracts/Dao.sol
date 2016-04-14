@@ -19,7 +19,7 @@ contract Proposal {
     uint256 totalDeclines;
   }
 
-  enum Status { Pledging, FailPledge, Voting, FailVote, Completed }
+  enum Status { Pledging, FailPledge, Voting, FailVote, Passed }
 
   Status public status = Status.Pledging;
 
@@ -62,7 +62,7 @@ contract Proposal {
     }
   }
 
-  function resolvePledges() onlyAfter(pledgeData.endDate) atStatus(Status.Pledging) internal returns (bool _success) {
+  function resolvePledging() onlyAfter(pledgeData.endDate) atStatus(Status.Pledging) internal returns (bool _success) {
     uint256 _totalpledges = pledgeData.totalApproves + pledgeData.totalDeclines;
     uint256 _approveppb = partsPerBillion(pledgeData.totalApproves, _totalpledges); 
     if (dissolve) {
@@ -82,10 +82,13 @@ contract Proposal {
     return _success;
   }
 
-  function resolvePledgeFail() onlyAfter(pledgeData.endDate) atStatus(Status.FailPledge) internal returns (bool _success) {
+  function resolveFailPledge() onlyAfter(pledgeData.endDate) atStatus(Status.FailPledge) internal returns (bool _success) {
   }
 
-  function resolveVotes() onlyAfter(voteData.endDate) atStatus(Status.Voting) internal returns (bool _success) {
+  function resolveVoting() onlyAfter(voteData.endDate) atStatus(Status.Voting) internal returns (bool _success) {
+  }
+  
+  function resolveFailVote() onlyAfter(voteData.endDate) atStatus(Status.Voting) internal returns (bool _success) {
   }
 
   function Proposal(address _config, address _badgeledger, address _tokenledger, bytes32 _environment, bool _dissolve) {
@@ -186,10 +189,6 @@ contract Proposal {
       success = true;
     }
     return success;
-  }
-
-  function resolve() returns (bool success) {
-    return true;
   }
 
   function releaseBadges() onlyAfter(pledgeData.endDate) returns (bool success) {
