@@ -75,7 +75,7 @@ else
   period_three = (period_two + 1.minutes).to_i
   end_date = (period_three + 1.minutes).to_i
   goal = 500_000
-  badge_cost = 15_000
+  badge_cost = 100
   cap = 5_500_000
 end
 
