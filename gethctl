@@ -17,7 +17,7 @@ case $1 in
   clear)
     echo "Clearing testnet files"
     cat /dev/null > /tmp/digix_testnet.out
-    data_files=(testnet/chaindata testnet/dapp testnet/history testnet/geth.ipc testnet/nodekey testnet/nodes)
+    data_files=(testnet/chaindata testnet/dapp testnet/geth.ipc testnet/nodekey testnet/nodes)
     for data_file in ${data_files[@]}
     do
       rm -rf $data_file
