@@ -75,11 +75,6 @@ contract Badge  {
 
 contract Token is TokenInterface {
 
-  modifier noEther() {
-    if (msg.value > 0) throw;
-    _
-  }
-
   modifier ifSales() {
     if (!seller[msg.sender]) throw; 
     _ 
@@ -163,6 +158,11 @@ contract Token is TokenInterface {
 
   function registerSeller(address _tokensales) ifDao returns (bool success) {
     seller[_tokensales] = true;
+    return true;
+  }
+
+  function unregisterSeller(address _tokensales) ifDao returns (bool success) {
+    seller[_tokensales] = false;
     return true;
   }
 }
