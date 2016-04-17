@@ -5,8 +5,8 @@ contract Badge  {
   mapping (address => mapping (address => uint256)) allowed;
   mapping (address => bool) seller;
 
-  address owner;
-  bool locked;
+  address public owner;
+  bool public locked;
 
   /// @return total amount of tokens
   uint256 public totalSupply;
@@ -16,12 +16,34 @@ contract Badge  {
     _
   }
 
-  event Transfer(address indexed _from, address indexed _to, uint256 indexed _value);
+  event Transfer(address indexed _from, address indexed _to, uint256 _value);
   event Mint(address indexed _recipient, uint256 indexed _amount);
-  event Approval(address indexed _owner, address indexed _spender, uint256 indexed _value);
+  event Approval(address indexed _owner, address indexed _spender, uint256  _value);
 
   function Badge(address _config) {
     owner = msg.sender;
+  }
+
+  function safeToAdd(uint a, uint b) returns (bool) {
+    return (a + b >= a);
+  }
+
+  function addSafely(uint a, uint b) returns (uint result) {
+    if (!safeToAdd(a, b)) {
+      throw;
+    } else {
+      result = a + b;
+      return result;
+    }
+  }
+
+  function safeToSubtract(uint a, uint b) returns (bool) {
+    return (b <= a);
+  }
+
+  function subtractSafely(uint a, uint b) returns (uint) {
+    if (!safeToSubtract(a, b)) throw;
+    return a - b;
   }
 
   function balanceOf(address _owner) constant returns (uint256 balance) {
@@ -30,8 +52,8 @@ contract Badge  {
 
   function transfer(address _to, uint256 _value) returns (bool success) {
     if (balances[msg.sender] >= _value && _value > 0) {
-      balances[msg.sender] -= _value;
-      balances[_to] += _value;
+      balances[msg.sender] = subtractSafely(balances[msg.sender], _value);
+      balances[_to] = addSafely(_value, balances[_to]);
       Transfer(msg.sender, _to, _value);
       success = true;
     } else {
@@ -42,8 +64,8 @@ contract Badge  {
 
   function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {
     if (balances[_from] >= _value && allowed[_from][msg.sender] >= _value && _value > 0) {
-      balances[_to] += _value;
-      balances[_from] -= _value;
+      balances[_to] = addSafely(balances[_to], _value);
+      balances[_from] = subtractSafely(balances[_from], _value);
       allowed[_from][msg.sender] -= _value;
       Transfer(_from, _to, _value);
       return true;
@@ -71,9 +93,27 @@ contract Badge  {
     return true;
   }
 
+  function setOwner(address _owner) ifOwner returns (bool success) {
+    owner = _owner;
+    return true;
+  }
+
 }
 
-contract Token is TokenInterface {
+contract Token {
+
+  address public owner;
+  address public config;
+  bool public locked;
+  address public dao;
+  address public badgeLedger;
+  uint256 public totalSupply;
+
+  mapping (address => uint256) balances;
+  mapping (address => mapping (address => uint256)) allowed;
+  mapping (address => bool) seller;
+
+  /// @return total amount of tokens
 
   modifier ifSales() {
     if (!seller[msg.sender]) throw; 
@@ -90,6 +130,10 @@ contract Token is TokenInterface {
     _
   }
 
+  event Transfer(address indexed _from, address indexed _to, uint256 _value);
+  event Mint(address indexed _recipient, uint256 indexed _amount);
+  event Approval(address indexed _owner, address indexed _spender, uint256  _value);
+
   function Token(address _config) {
     config = _config;
     owner = msg.sender;
@@ -97,6 +141,28 @@ contract Token is TokenInterface {
     seller[_initseller] = true; 
     badgeLedger = new Badge(_config);
     locked = false;
+  }
+
+  function safeToAdd(uint a, uint b) returns (bool) {
+    return (a + b >= a);
+  }
+
+  function addSafely(uint a, uint b) returns (uint result) {
+    if (!safeToAdd(a, b)) {
+      throw;
+    } else {
+      result = a + b;
+      return result;
+    }
+  }
+
+  function safeToSubtract(uint a, uint b) returns (bool) {
+    return (b <= a);
+  }
+
+  function subtractSafely(uint a, uint b) returns (uint) {
+    if (!safeToSubtract(a, b)) throw;
+    return a - b;
   }
 
   function balanceOf(address _owner) constant returns (uint256 balance) {
@@ -139,8 +205,8 @@ contract Token is TokenInterface {
     return remaining;
   }
   function mint(address _owner, uint256 _amount) ifSales returns (bool success) {
-    totalSupply += _amount;
-    balances[_owner] += _amount;
+    totalSupply = addSafely(_amount, totalSupply);
+    balances[_owner] = addSafely(balances[_owner], _amount);
     return true;
   }
 
@@ -164,5 +230,19 @@ contract Token is TokenInterface {
   function unregisterSeller(address _tokensales) ifDao returns (bool success) {
     seller[_tokensales] = false;
     return true;
+  }
+
+  function setOwner(address _newowner) ifDao returns (bool success) {
+    if(Badge(badgeLedger).setOwner(_newowner)) {
+      owner = _newowner;
+      success = true;
+    } else {
+      success = false;
+    }
+    return success;
+  }
+
+  function setDao(address _newdao) ifDao returns (bool success) {
+    dao = _newdao;
   }
 }
