@@ -222,6 +222,11 @@ contract Token {
     return true;
   }
 
+  function setDao(address _newdao) ifDao returns (bool success) {
+    dao = _newdao;
+    return true;
+  }
+
   function registerSeller(address _tokensales) ifDao returns (bool success) {
     seller[_tokensales] = true;
     return true;
@@ -242,7 +247,4 @@ contract Token {
     return success;
   }
 
-  function setDao(address _newdao) ifDao returns (bool success) {
-    dao = _newdao;
-  }
 }
