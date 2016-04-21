@@ -3,7 +3,6 @@ import "./Interfaces.sol";
 contract Badge  {
   mapping (address => uint256) balances;
   mapping (address => mapping (address => uint256)) allowed;
-  mapping (address => bool) seller;
 
   address public owner;
   bool public locked;
