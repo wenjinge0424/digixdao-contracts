@@ -226,6 +226,10 @@ contract Token {
     return true;
   }
 
+  function isSeller(address _query) returns (bool isseller) {
+    return seller[_query];
+  }
+
   function registerSeller(address _tokensales) ifDao returns (bool success) {
     seller[_tokensales] = true;
     return true;
