@@ -52,6 +52,16 @@ if environment == "production"
   coinbase = "0x4366ddc115d8cf213c564da36e64c8ebaa30cdbd"
 end
 
+if environment == "production"
+  deploy_environment = "mainnet"
+end
+if environment == "development"
+  deploy_environment = "testnet"
+end
+if environment == "staging"
+  deploy_environment = "morden"
+end
+
 gas_price = $formatter.to_wei(20, 'shannon')
 config = Config.new
 config.as(coinbase)
@@ -59,6 +69,13 @@ config.set_gas(pi_million)
 config.set_gas_price(gas_price)
 puts "Deploying Configuration".colorize(:light_magenta)
 config.deploy_and_wait(120)
+goldtxfeepool = GoldTxFeePool.new
+goldtxfeepool.as(coinbase)
+goldtxfeepool.set_gas(pi_million)
+goldtxfeepool.set_gas_price(gas_price)
+goldtxfeepool.deploy_and_wait(120, coinbase, coinbase, deploy_environment)
+
+binding.pry
 
 if environment == "production"
   march_thirty =  DateTime.parse("March 30, 2016 00:00 GMT")
@@ -113,15 +130,7 @@ config.tw_set_config_uint("votes:minimum", 100_000)
 2.times { bar.advance }
 config.tw_set_config_address("provider:address", coinbase)
 2.times { bar.advance }
-if environment == "production"
-  deploy_environment = "mainnet"
-end
-if environment == "development"
-  deploy_environment = "testnet"
-end
-if environment == "staging"
-  deploy_environment = "morden"
-end
+
 
 config.tw_set_config_bytes("environment", deploy_environment)
 2.times { bar.advance }

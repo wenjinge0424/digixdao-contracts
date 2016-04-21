@@ -20,7 +20,7 @@ contract Badge  {
   event Mint(address indexed _recipient, uint256 indexed _amount);
   event Approval(address indexed _owner, address indexed _spender, uint256  _value);
 
-  function Badge(address _config) {
+  function Badge() {
     owner = msg.sender;
   }
 
@@ -139,7 +139,7 @@ contract Token {
     owner = msg.sender;
     address _initseller = ConfigInterface(_config).getConfigAddress("sale1:address");
     seller[_initseller] = true; 
-    badgeLedger = new Badge(_config);
+    badgeLedger = new Badge();
     locked = false;
   }
 

@@ -51,7 +51,6 @@ contract CoreWallet {
     }
   }
 
-
   function CoreWallet() {
     approved[msg.sender] = true;
     managers[msg.sender] = true;
