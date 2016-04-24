@@ -26,6 +26,11 @@ contract Collector {
     _success = true;
     return _success;
   }
+
+  function withdraw() ifTxFeePool returns (bool _success) {
+    _success = true;
+    return _success;
+  }
 }
 
 contract GoldTxFeePool {
@@ -88,5 +93,11 @@ contract GoldTxFeePool {
     _start = periods[periodCount].collectionStart;
     _end = periods[periodCount].collectionEnd;
     return (_start, _end);
+  }
+
+  function collect() {
+  }
+
+  function withdraw() {
   }
 }

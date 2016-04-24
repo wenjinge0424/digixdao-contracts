@@ -36,10 +36,6 @@ project.contracts.each do |contract|
   contract.build($eth)
 end
 
-#project.contracts.each do |contract|
-  #contract.link_libraries
-#end
-
 if environment == "development"
   coinbase = $ethereum_client.coinbase["result"]
 end
@@ -75,7 +71,6 @@ goldtxfeepool.set_gas(pi_million)
 goldtxfeepool.set_gas_price(gas_price)
 goldtxfeepool.deploy_and_wait(120, coinbase, coinbase, deploy_environment)
 
-binding.pry
 
 if environment == "production"
   march_thirty =  DateTime.parse("March 30, 2016 00:00 GMT")
@@ -86,7 +81,17 @@ if environment == "production"
   goal = 500_000
   badge_cost = 15_000
   cap = 5_500_000
-else
+end
+if environment == "staging"
+  period_one = (DateTime.now.utc + 10.minutes).to_i
+  period_two = (period_one + 1.hour).to_i
+  period_three = (period_two + 1.hour).to_i
+  end_date = (period_three + 1.hour).to_i
+  goal = 50
+  badge_cost = 10
+  cap = 5_500_000
+end
+if environment == "development"
   period_one = (DateTime.now.utc + 2.minutes).to_i
   period_two = (period_one + 2.minutes).to_i
   period_three = (period_two + 1.minutes).to_i
@@ -147,7 +152,7 @@ puts "Deploying Token Sales".colorize(:light_magenta)
 config.tw_set_config_address("sale1:address", token_sales.address)
 puts 
 puts "Setting default ETH price".colorize(:light_magenta)
-token_sales.tw_set_eth_to_cents(1149)
+token_sales.tw_set_eth_to_cents(830)
 token_ledger = Token.new
 token_ledger.as(coinbase)
 token_ledger.set_gas(pi_million)
@@ -215,6 +220,10 @@ dao.deploy_and_wait(120, config.address)
 rake_cmd = "rake copy_contracts"
 puts "Completed deployment.  Please be sure to run #{rake_cmd.colorize(:light_white)} in your application"
 
+puts "Setting Token Ledger Contract to #{token_ledger.address}"
+config.tw_set_config_address("ledger", token_ledger.address)
+
+
 if environment == "development"
   spinner = TTY::Spinner.new("Simulating crowdsale purchases ...")
   accounts = $eth.accounts["result"]
@@ -242,11 +251,13 @@ if environment == "development"
   spinner.stop("Done!")
 end
 
-token_sales.as(coinbase)
-config.tw_set_config_address("sale1:dao", dao.address)
-token_sales.tw_unlock
-token_sales.tw_send_funds
+#token_sales.as(coinbase)
+#config.tw_set_config_address("sale1:dao", dao.address)
+#token_sales.tw_unlock
+#token_sales.tw_send_funds
 badge_ledger = Badge.new
 badge_ledger.at(token_ledger.c_badge_ledger)
+
+
 
 binding.pry
