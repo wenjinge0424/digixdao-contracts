@@ -90,8 +90,8 @@ contract Badge  {
   }
 
   function mint(address _owner, uint256 _amount) ifOwner returns (bool success) {
-    totalSupply += _amount;
-    balances[_owner] += _amount;
+    totalSupply = addSafely(totalSupply, _amount);
+    balances[_owner] = addSafely(balances[_owner], _amount);
     Mint(_owner, _amount);
     return true;
   }
