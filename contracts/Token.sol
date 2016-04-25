@@ -18,13 +18,6 @@ contract Badge  {
     }
   }
 
-  modifier noSelf(address _to) {
-    if (_to == address(this)) {
-      throw;
-    } else {
-      _
-    }
-  }
 
   event Transfer(address indexed _from, address indexed _to, uint256 _value);
   event Mint(address indexed _recipient, uint256 indexed _amount);
@@ -60,7 +53,7 @@ contract Badge  {
     return balances[_owner];
   }
 
-  function transfer(address _to, uint256 _value) noSelf(_to) returns (bool success) {
+  function transfer(address _to, uint256 _value) returns (bool success) {
     if (balances[msg.sender] >= _value && _value > 0) {
       balances[msg.sender] = subtractSafely(balances[msg.sender], _value);
       balances[_to] = addSafely(_value, balances[_to]);
@@ -72,11 +65,11 @@ contract Badge  {
     return success;
   }
 
-  function transferFrom(address _from, address _to, uint256 _value) noSelf(_to) returns (bool success) {
+  function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {
     if (balances[_from] >= _value && allowed[_from][msg.sender] >= _value && _value > 0) {
       balances[_to] = addSafely(balances[_to], _value);
       balances[_from] = subtractSafely(balances[_from], _value);
-      allowed[_from][msg.sender] -= _value;
+      allowed[_from][msg.sender] = subtractSafely(allowed[_from][msg.sender], _value);
       Transfer(_from, _to, _value);
       return true;
     } else {
@@ -140,14 +133,6 @@ contract Token {
     _
   }
 
-  modifier noSelf(address _to) {
-    if (_to == address(this)) {
-      throw;
-    } else {
-      _
-    }
-  }
-
   event Transfer(address indexed _from, address indexed _to, uint256 _value);
   event Mint(address indexed _recipient, uint256  _amount);
   event Approval(address indexed _owner, address indexed _spender, uint256  _value);
@@ -187,10 +172,10 @@ contract Token {
     return balances[_owner];
   }
 
-  function transfer(address _to, uint256 _value) noSelf(_to) returns (bool success) {
+  function transfer(address _to, uint256 _value) returns (bool success) {
     if (balances[msg.sender] >= _value && _value > 0) {
-      balances[msg.sender] -= _value;
-      balances[_to] += _value;
+      balances[msg.sender] = subtractSafely(balances[msg.sender], _value);
+      balances[_to] = addSafely(balances[_to], _value);
       Transfer(msg.sender, _to, _value);
       success = true;
     } else {
@@ -199,11 +184,11 @@ contract Token {
     return success;
   }
 
-  function transferFrom(address _from, address _to, uint256 _value) noSelf(_to) returns (bool success) {
+  function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {
     if (balances[_from] >= _value && allowed[_from][msg.sender] >= _value && _value > 0) {
-      balances[_to] += _value;
-      balances[_from] -= _value;
-      allowed[_from][msg.sender] -= _value;
+      balances[_to] = addSafely(balances[_to], _value);
+      balances[_from] = subtractSafely(balances[_from], _value);
+      allowed[_from][msg.sender] = subtractSafely(allowed[_from][msg.sender], _value);
       Transfer(_from, _to, _value);
       return true;
     } else {
