@@ -1,0 +1,76 @@
+#!/usr/bin/env ruby
+
+require 'ethereum'
+require 'active_support'
+require 'active_support/core_ext'
+require 'colorize'
+require 'tty'
+require 'tty-progressbar'
+require 'tty-spinner'
+require 'tty-prompt'
+require 'tty-table'
+require 'pry'
+require 'securerandom'
+
+base_dir = ENV['PWD']
+project = Ethereum::ProjectInitializer.new("#{base_dir}/contracts/*.sol", true)
+$ethereum_client = Ethereum::HttpClient.new("localhost", "8545")
+$ipc_client = Ethereum::IpcClient.new("#{ENV['HOME']}/Library/Ethereum/geth.ipc")
+$eth = $ethereum_client
+$formatter = Ethereum::Formatter.new
+$f = $formatter
+pi_million = (Math::PI * 1_000_000).to_i
+
+project.contracts.each do |contract|
+  contract.build($eth)
+end
+coinbase = "0x4366ddc115d8cf213c564da36e64c8ebaa30cdbd"
+deploy_environment = "mainnet"
+gas_price = $formatter.to_wei(20, 'shannon')
+config = Config.new
+config.as(coinbase)
+config.set_gas(pi_million)
+config.set_gas_price(gas_price)
+json_config = JSON.parse(File.read(File.join("build", "production", "app_config.json")))
+config.at(json_config["config_address"])
+config.tw_set_config_uint("pledges:minimum", 20)
+config.tw_set_config_uint("votes:minimum", 100_000)
+config.tw_set_config_address("provider:address", coinbase)
+config.tw_set_config_bytes("environment", deploy_environment)
+token_sales = TokenSales.new
+token_sales.at(json_config["token_sales_address"])
+token_ledger = Token.new
+token_ledger.as(coinbase)
+token_ledger.set_gas(pi_million)
+token_ledger.set_gas_price(gas_price)
+token_ledger.deploy_and_wait(120, config.address)
+config.tw_set_config_address("ledger", token_ledger.address)
+badge_ledger = Badge.new
+badge_ledger.at(token_ledger.c_badge_ledger)
+
+table = TTY::Table.new(
+  [
+    ["Name".colorize(:blue), "Value".colorize(:blue)],
+    ["Crowdsale configured start", "#{Time.at(config.c_get_config_uint("sale1:period1"))}"],
+    ["Crowdsale configured period 2", "#{Time.at(config.c_get_config_uint("sale1:period2"))}"],
+    ["Crowdsale configured period 3", "#{Time.at(config.c_get_config_uint("sale1:period3"))}"],
+    ["Crowdsale configured end", "#{Time.at(config.c_get_config_uint("sale1:end"))}"],
+    ["Crowdsale configured total DAO tokens", "#{config.c_get_config_uint("sale1:amount")}"],
+    ["Crowdsale configured USD goal", "#{config.c_get_config_uint("sale1:goal")}"],
+    ["Crowdsale configured USD cap", "#{config.c_get_config_uint("sale1:cap")}"],
+    ["Crowdsale configured total DAO tokens for founders", "#{config.c_get_config_uint("sale1:famount")}"],
+    ["Crowdsale configured founder wallet", "#{config.c_get_config_address("sale1:fwallet")}"],
+    ["Crowdsale configured Ether Payout Wallet (DAO)", "#{config.c_get_config_address("sale1:dao")}"],
+    ["Crowdsale configured Proposer Badge Cost", "#{config.c_get_config_uint("sale1:badgecost")}"],
+    ["DAO configured Minimum Pledges", "#{config.c_get_config_uint("pledges:minimum")}"],
+    ["DAO configured Minimum Votes", "#{config.c_get_config_uint("votes:minimum")}"],
+    ["DAO configured Environment", "#{config.c_get_config_bytes("environment")}"],
+    ["Crowdsale configured token sale contract", "#{config.c_get_config_address("sale1:address")}"],
+    ["Crowdsale configured token ledger contract", "#{config.c_get_config_address("ledger")}"],
+    ["Crowdsale configured badge ledger contract", "#{badge_ledger.address}"]
+  ]
+)
+puts table.render(:unicode, alignments: [:center, :center], padding: [0, 1, 0, 1])
+
+binding.pry
+

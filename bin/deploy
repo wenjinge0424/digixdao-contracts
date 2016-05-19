@@ -84,9 +84,9 @@ if environment == "production"
 end
 if environment == "staging"
   period_one = (DateTime.now.utc + 10.minutes).to_i
-  period_two = (period_one + 60.minutes).to_i
-  period_three = (period_two + 60.minutes).to_i
-  end_date = (period_three + 60.minutes).to_i
+  period_two = (period_one + 10.minutes).to_i
+  period_three = (period_two + 10.minutes).to_i
+  end_date = (period_three + 10.minutes).to_i
   goal = 50
   badge_cost = 25
   cap = 5_500_000

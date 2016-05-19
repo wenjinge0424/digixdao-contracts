@@ -8,11 +8,11 @@ case $1 in
   start)
     echo "Starting testnet node"
     #$GETH --genesis ./testnet/genesis.json --datadir ./testnet --minerthreads 1 --mine --vmdebug --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 js unlock.js 2>> /tmp/digix_testnet.out
-    $GETH --genesis ./testnet/genesis.json --nat "none" --datadir ./testnet --minerthreads 1 --mine --vmdebug --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 console 2>> /tmp/digix_testnet.out
+    $GETH --nat "none" --datadir ./testnet --minerthreads 1 --mine --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 console 2>> /tmp/digix_testnet.out
     ;;
   attach)
     echo "Attaching to console"
-    $GETH --genesis ./testnet/genesis.json --datadir ./testnet --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 attach
+    $GETH --datadir ./testnet --rpc --ipcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3 attach
     ;;
   clear)
     echo "Clearing testnet files"
@@ -22,6 +22,7 @@ case $1 in
     do
       rm -rf $data_file
     done
+    $GETH --datadir ./testnet init ./testnet/genesis.json
     ;;
   *)
     echo "Usage $0 [start | clear | attach]"
